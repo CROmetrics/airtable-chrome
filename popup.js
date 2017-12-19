@@ -81,8 +81,10 @@ function getBaseJson() {
            $(document).on("change", ".statsel", function(event) {
               var base = $(this).data('baseid');
               var recid = $(this).attr('id');
-               var newstatus = $(this).find("option:selected").text(); 
-
+              var newstatus = $(this).find("option:selected").text(); 
+              var row =$(this).parent().parent();
+              var cell =$(this).parent();
+              
               var x = new XMLHttpRequest();
               x.open('PATCH','https://api.airtable.com/v0/' + base + '/Roadmap/' + recid + '?api_key=keyCCt9CA9X31EYbH');
               x.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
@@ -92,7 +94,9 @@ function getBaseJson() {
                  if(json.error)
                    alert(json.error.type); 
                  else {
-
+                    console.log(row);
+                    row.removeClass().addClass(newstatus.toLowerCase()).addClass('row');
+                    cell.removeClass().addClass(newstatus.toLowerCase()).addClass('cell').addClass('status');
                  }
               };
               x.send(JSON.stringify({fields: { Status: newstatus } }));              
