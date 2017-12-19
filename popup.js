@@ -60,16 +60,18 @@ function getBaseJson() {
                 o[i].fields.Status === "In QA" ||
                 o[i].fields.Status === "Spec" ||
                 o[i].fields.Status === "Implementation" ||
-                o[i].fields.Status === "On Deck"
-                )
-              
+                o[i].fields.Status === "On Deck" ||
+                o[i].fields.Status === "Pending Approval"                
+                )              
               {
                 outhtml += "<div class='row " +o[i].fields.Status.toLowerCase()+"'><div class='status cell "+o[i].fields.Status.toLowerCase()+"'>";
-                outhtml += "<select data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id +"'><option " + ((o[i].fields.Status === 'Live') ? "selected":"") + ">Live</option>";
-                outhtml += "<option " + ((o[i].fields.Status === 'In QA') ? "selected":"") + ">In QA</option>";
+                outhtml += "<select data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id +"'><option " + ((o[i].fields.Status === 'On Deck') ? "selected":"") + ">On Deck</option>";
                 outhtml += "<option " + ((o[i].fields.Status === 'Spec') ? "selected":"") + ">Spec</option>";
                 outhtml += "<option " + ((o[i].fields.Status === 'Implementation') ? "selected":"") + ">Implementation</option>";
-                outhtml += "<option " + ((o[i].fields.Status === 'On Deck') ? "selected":"") + ">On Deck</option>";
+                outhtml += "<option " + ((o[i].fields.Status === 'In QA') ? "selected":"") + ">In QA</option>";
+                outhtml += "<option " + ((o[i].fields.Status === 'Live') ? "selected":"") + ">Live</option>";
+                outhtml += "<option " + ((o[i].fields.Status === 'Pending Approval') ? "selected":"") + ">Pending Approval</option>";
+                outhtml += "<option>Blocked</option>";                
                 outhtml += "<option>Completed</option>";
                 outhtml += "<option>Softcoded</option></select>";
                 outhtml += "</div>"
@@ -109,15 +111,25 @@ function getBaseJson() {
 
 document.addEventListener('DOMContentLoaded', () => {   
    
+  
    for (var xn = 1; xn < 7; xn++) {
     let xget = "base" + xn;
-
     getSavedBase([xget], (saveurl) => {
-       if (saveurl[xget] !== 'undefined') {
-         document.getElementById(xget).value = saveurl[xget];
+      if (saveurl[xget] !== 'undefined' && saveurl[xget].length > 0) {
+         document.getElementById(xget).value = saveurl[xget];         
       } 
      })
     }
+    
+    setTimeout(function () {
+      if ($('#base1').val().length === 0) {
+        $("myids").empty();
+        document.getElementById("myids").innerHTML = "First enter your bases: <a href='https://crometrics.quip.com/nezDAyAVPf7b/Setup-Airtable-Quickview-Chrome-Extension' target='_new'>Instructions</a>";
+      } else {
+        getBaseJson();
+      }
+     }, 1000);
+    
 
     $('.togbase').click(function(e){
         e.preventDefault();
@@ -147,6 +159,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
 
-    getBaseJson();
+    
     
 });
