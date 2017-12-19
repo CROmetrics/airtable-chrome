@@ -1,0 +1,157 @@
+<!doctype html>
+<!--
+ This page is shown when the extension button is clicked, because the
+ "browser_action" field in manifest.json contains the "default_popup" key with
+ value "popup.html".
+ -->
+<html>
+  <head>
+    <title>Getting Started Extension's Popup</title>
+    <style type="text/css">
+      body {
+        padding: 0px;
+        white-space: nowrap;
+        margin: 0;
+        min-width: 600px;
+      }
+
+      h1 {
+        font-size: 15px;
+        background-color: #3774BB;
+        color: #fff;
+        margin: 0;
+        padding: 10px;
+
+      }
+
+      #container {
+        align-items: center;
+        display: flex;
+        justify-content: space-between;
+        
+        padding: 5px 12px;
+        color: #333;
+        font-size: 14px;
+      }
+      .row {
+        padding: 6px 0 6px;
+        //border-top: solid 1px #ccc;
+        border-bottom: solid 1px #ccc;
+        
+      }
+      .cell{
+        display: inline-block;
+        margin-right: 10px;
+      }
+      .status {
+        font-weight: bold;        
+      }
+      .implementation select {
+        background-color: #FCECB5;
+      }
+      .spec select {
+        background-color: #ccc;
+      }
+      .live select {
+        background-color: #D1F9C3;
+      }
+      .deck select {
+        background-color: #FCE2D4;
+      }
+      .qa select {
+        background-color: #EDE0FE;
+      }
+      .baseurls {
+        padding: 0 10px;
+
+      }
+      .baseurls input {
+        margin: 0 0 5px 0;
+        height: 15px;
+        padding: 3px;
+        width: 90%;
+      }
+      .base_inputs{
+        display: none;
+      }
+      .togbase {
+        font-weight: 15px;
+        font-weight: bold;
+        margin: 10px 0;
+        display: block;
+        color: #3774BB;
+      }
+      button {
+        background-color: #ff590a;
+        color: #fff;
+        padding: 10px 10px;
+        text-transform: uppercase;
+        border: none;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      select {
+        padding: 4px;
+      }
+      #myids{
+        min-width: 600px;
+      }
+      .loader {
+        font-size: 16px;
+        color: #333;
+        font-weight: bold;
+        text-align: center;
+      }
+      .loaderimg{
+        display: block;
+        text-align: center;
+        margin: 0 auto;
+        width: 100px;
+        margin-top: 15px;
+      }
+      .toglive{
+         background-color: #bebebe;
+         border-radius: 6px;
+         padding: 0 5px;
+         margin-left: 10px;
+         text-decoration: none;
+         color: #333;
+         float: right;
+         font-size: 14px;
+      }
+    </style>
+
+    <!--
+      - JavaScript and HTML must be in separate files: see our Content Security
+      - Policy documentation[1] for details and explanation.
+      -
+      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
+    -->
+    <script src="lo.js"></script>
+    <script src="jquery.js"></script>
+    <script src="popup.js"></script>
+  </head>
+
+  <body>
+    <h1>Airtable Quickview <a class="toglive" href="#">hide live tests</a></h1>
+    <div id="container">
+      <div id="myids" name="myids" >
+        <div class="loader">Airdrop incoming...Victory ahead!
+        <img  class="loaderimg" src="loader.gif" />
+        </div>
+      </div>
+    </div>
+    <div class="baseurls">
+      <a href="#" class="togbase">Enter Bases</a>
+      <div class="base_inputs">
+        <input id="base1" /><br>
+        <input id="base2" /><br>
+        <input id="base3" /><br>
+        <input id="base4" /><br>
+        <input id="base5" /><br>
+        <input id="base6" /><br>
+        <button id="btnSaveBases">Save Bases</button>
+      </div>
+    </div>
+  </body>
+</html>
