@@ -182,7 +182,7 @@ function getBaseJson() {
                     let o = 0;
                     for (var prop in json.metrics[c].results) {                        
                         if (json.metrics[c].results[prop].is_baseline === false) {
-                          var lift = Math.floor(json.metrics[c].results[prop].lift.value * 100) + "%";
+                          var lift = Math.round((json.metrics[c].results[prop].lift.value * 100)*10)/10 + "%";
                           var ss = Math.floor(json.metrics[c].results[prop].lift.significance * 100) + "%";
                           //variation results
                           rtext += "<li>" + "V" + o + ": " + lift + " @" + ss + "</li>";
