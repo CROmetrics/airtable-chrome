@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 let apikey, opt1, opt2, opt3, opt4, opt5, opt6;
+let filteredtests, alltests;
 function getUrlVars(url)
 {
     var vars = [], hash;
@@ -48,40 +49,17 @@ function getTokenFromExName(ex) {
   return null;
 }
 
-function getBaseJson() {
-  var outhtml = "";
-  var records = []; 
-  //var bn = "1";
-  $("myids").empty();
+function bindTests(testtobind){
+          
+          $( "body" ).off("change",".statsel");    
+          $("body").off("click", ".btnGetResults"); 
+          $("body").off("click", ".btnCloseToR");     
+          $("body").off("click", ".addTrello");   
+          $("body").off("click", ".addResults");   
+          $("#myids").empty();
+          var outhtml = "";
 
-  for (var bn = 6; bn > 0; bn--) {
-    let baseget = "base" + bn;
-  chrome.storage.sync.get([baseget], function (result) {
-        
-        if(result[baseget]){
-        var output = '';
-        //var link = "https://api.airtable.com/v0/app7sijAn7bwELvYg/Roadmap?api_key=keyCCt9CA9X31EYbH";
-        var x = new XMLHttpRequest();
-        var baseid =result[baseget].substring(result[baseget].lastIndexOf("v0/")+3,result[baseget].lastIndexOf("/"));
-        x.open('GET', result[baseget]);
-        x.onload = function() {
-           json = JSON.parse(x.responseText);
-           //console.log(json);
-
-           for (var i = json.records.length - 1; i >= 0; i--) {
-            json.records[i].baseid = baseid;
-            records.push(json.records[i]);            
-           }
-           //document.getElementById("myids").innerHTML = output;            
-        };
-        x.send();
-      }
-      });
-      }
-  
-      setTimeout(function(){
-          //console.log(records);
-          var o = _.orderBy(records, ['fields.Status', 'fields.Experiment'], ['asc','asc']);
+          var o = _.orderBy(testtobind, ['fields.Status', 'fields.Experiment'], ['asc','asc']);
            //console.log('pop');
            //console.log(o); 
            for (var i = o.length - 1; i >= 0; i--) {
@@ -99,9 +77,16 @@ function getBaseJson() {
                 outhtml += "<div class='icos'>";
                 if (o[i].fields.Results){
                  outhtml += "<div class='cell'><a href='" + o[i].fields.Results + "' target='_new' title='open results tab' ><img style='width:20px' src='opt.ico' /></a></div>";
+                } else {
+                 outhtml += "<div class='cell'><a data-baseid='" + o[i].baseid + "' data-recid='" + o[i].id + "' class='addResults' title='add results link' ><img style='width:20px' src='opt.png' /></a></div>";
+
                 }
-                 if (o[i].fields["Trello Link"]){
+
+                if (o[i].fields["Trello Link"]){
                  outhtml += "<div class='cell'><a target='_new' href='" + o[i].fields["Trello Link"] +"' title='open trello' ><img style='width:20px' src='trello.ico' /></a></div>";
+                } else {
+                 outhtml += "<div class='cell'><a data-baseid='" + o[i].baseid + "' data-recid='" + o[i].id + "' class='addTrello' title='add trello link' ><img style='width:20px' src='trello.png' /></a></div>";
+
                 }
                 outhtml += "</div><div class='status cell "+o[i].fields.Status.toLowerCase()+"'>";                
                 outhtml += "<select data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id +"'><option " + ((o[i].fields.Status === 'On Deck') ? "selected":"") + ">On Deck</option>";
@@ -122,10 +107,11 @@ function getBaseJson() {
                 outhtml += "<div class='resultrow row"+o[i].fields.ExperimentId+"'><div id='txt"+o[i].fields.ExperimentId+"'></div></div>";
             }
            }}
-           document.getElementById("myids").innerHTML = outhtml; 
+           $("#myids").html(outhtml);
            
            //Update status back to airtable
-           $(document).on("change", ".statsel", function(event) {
+            $("body").on("change", ".statsel", function(event) {
+              //console.log('change');
               var base = $(this).data('baseid');
               var recid = $(this).attr('id');
               var newstatus = $(this).find("option:selected").text(); 
@@ -141,6 +127,7 @@ function getBaseJson() {
                  if(json.error)
                    alert(json.error.type); 
                  else {
+                  console.log('patch');
                     //console.log(row);
                     row.removeClass().addClass(newstatus.toLowerCase()).addClass('row');
                     cell.removeClass().addClass(newstatus.toLowerCase()).addClass('cell').addClass('status');
@@ -156,7 +143,7 @@ function getBaseJson() {
             });
 
           //Pull results from Optimizely
-          $(document).on("click", ".btnGetResults", function(event) {
+          $("body").on("click", ".btnGetResults", function(event) {
             var token = $(this).data('token');
             var exid = $(this).data('exid');
             var resultlink = 'https://api.optimizely.com/v2/experiments/' + exid + '/results';
@@ -170,10 +157,13 @@ function getBaseJson() {
               
               x.onload = function() {                   
                  json = JSON.parse(x.responseText); 
-                 //console.log(json);              
+                 console.log(json);              
                  var rtext = "";
                  var start = "Started on: " + json.start_time + "<br>";
-                 var total_visitors = "Total visitors:" + json.reach.total_count + "<br>";
+                 
+                 if(json.reach.total_count)
+                    var total_visitors = "Total visitors:" + json.reach.total_count + "<br>";
+                 
                  rtext += start + total_visitors + "<ul>";
                  for (var c = 0; c < json.metrics.length; c++) {
                    
@@ -199,8 +189,88 @@ function getBaseJson() {
             x.send(); 
           });
 
-        }
-        ,2100);
+          $("body").on("click", ".addTrello", function(event) {
+            //pop modal            
+            var base = $(this).data('baseid');
+            var recid = $(this).data('recid');
+            $('.UpdateToR').slideToggle();
+            $("body").on("click", ".btnToR", function(event) {
+              UpdateAtRecord('Trello Link', $('#txtField').val(), base, recid);
+               $('#txtField').val('');
+              $('.UpdateToR').slideToggle();
+              $("body").off("click", ".btnToR");
+              getBaseJson();
+            });
+            $("body").on("click", ".btnCloseToR", function(event) {              
+              $('.UpdateToR').slideToggle();   
+              $("body").off("click", ".btnCloseToR");             
+            });
+            
+          });
+
+          $("body").on("click", ".addResults", function(event) {
+            //pop modal
+            var base = $(this).data('baseid');
+            var recid = $(this).data('recid');
+            $('.UpdateToR').slideToggle();
+            $("body").on("click", ".btnToR", function(event) {
+              UpdateAtRecord('Results', $('#txtField').val(), base, recid);
+              $('#txtField').val('');
+              $('.UpdateToR').slideToggle();
+              $("body").off("click", ".btnToR");
+              getBaseJson();
+            });
+            $("body").on("click", ".btnCloseToR", function(event) {              
+              $('.UpdateToR').slideToggle();    
+              $("body").off("click", ".btnCloseToR");          
+            });
+            
+          });
+        
+}
+
+function filterTests(query){
+  if(query.length < 1) { bindTests(alltests);}
+
+   filteredtests = _.filter(alltests, function(item){
+      return item.fields.Experiment.toLowerCase().indexOf(query.toLowerCase())>-1;
+    });
+   bindTests(filteredtests);
+}
+
+function getBaseJson() {
+  
+  var records = []; 
+ 
+  for (var bn = 6; bn > 0; bn--) {
+    let baseget = "base" + bn;
+  chrome.storage.sync.get([baseget], function (result) {
+        
+        if(result[baseget]){
+        var output = '';
+        //var link = "https://api.airtable.com/v0/app7sijAn7bwELvYg/Roadmap?api_key=keyCCt9CA9X31EYbH";
+        var x = new XMLHttpRequest();
+        var baseid =result[baseget].substring(result[baseget].lastIndexOf("v0/")+3,result[baseget].lastIndexOf("/"));
+        x.open('GET', result[baseget]);
+        x.onload = function() {
+           json = JSON.parse(x.responseText);
+           //console.log(json);
+
+           for (var i = json.records.length - 1; i >= 0; i--) {
+            json.records[i].baseid = baseid;
+            records.push(json.records[i]);            
+           }
+           alltests = records;
+                       
+        };
+        x.send();
+      }
+      });
+      }
+      
+      setTimeout(function(){
+          bindTests(alltests);
+        },1100);
   
 }
 
@@ -210,7 +280,7 @@ function UpdateAtRecord(recordname, value, baseid, recid) {
       x.open('PATCH','https://api.airtable.com/v0/' + baseid + '/Roadmap/' + recid + '?api_key='+ apikey);
       x.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
       x.onload = function() {  
-         //console.log(x);        
+         console.log(x);        
          json = JSON.parse(x.responseText);
          if(json.error)
            alert(json.error.type);          
@@ -243,15 +313,8 @@ function setOptTokens() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', () => {   
-   
-   chrome.storage.sync.get("apikey", (ap) => {
-        apikey = ap['apikey'];
-   });
-  
-  setOptTokens();
-
-   for (var xn = 1; xn < 7; xn++) {
+function populateSettings(){
+  for (var xn = 1; xn < 7; xn++) {
     let xget = "base" + xn;
     let xopt = "opt" + xn;
     let txtPre = "txtPrefix" + xn;
@@ -268,7 +331,6 @@ document.addEventListener('DOMContentLoaded', () => {
         } 
        })
     }
-    
     setTimeout(function () {
       if ($('#base1').val().length === 0) {
         $("myids").empty();
@@ -277,6 +339,18 @@ document.addEventListener('DOMContentLoaded', () => {
         getBaseJson();
       }
      }, 1000);
+}
+
+
+
+document.addEventListener('DOMContentLoaded', () => {   
+   
+   chrome.storage.sync.get("apikey", (ap) => {
+        apikey = ap['apikey'];
+   });
+  
+  setOptTokens();
+  populateSettings();    
     
 
     $('.togbase').click(function(e){
@@ -346,6 +420,10 @@ document.addEventListener('DOMContentLoaded', () => {
         UpdateAtRecord('Results', $('#txtresultlink').val(), $(this).data('base'), $(this).data('recid'));
       }
       $('.LiveUpdate').slideToggle();
+    });
+
+    $("#txtsearch").on('input', function() { 
+        filterTests($("#txtsearch").val());        
     });
     
 });

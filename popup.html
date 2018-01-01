@@ -15,7 +15,22 @@
         min-width: 685px;
         min-height: 400px;
       }
-
+      header {
+        position: fixed;
+        top: 0;
+        width: 100%;
+        overflow: hidden;
+      }
+      .search {
+        padding: 10px 10px;
+        background-color: #eee;
+        box-shadow: #00000073 0px 0px 12px;
+      }
+      #txtsearch {
+        border-radius: 5px;
+        padding:2px;
+        float: right;
+      }
       h1 {
         font-size: 15px;
         background-color: #3774BB;
@@ -30,7 +45,7 @@
         //display: flex;
         //justify-content: space-between;
         
-        padding: 5px 12px 77px;
+        padding: 43px 12px 77px;
         color: #333;
         font-size: 14px;
       }
@@ -144,7 +159,7 @@
        .resultrow ul {
          margin: 2px 0;
        }
-      .LiveUpdate, .settings, .baseurls {
+      .LiveUpdate, .settings, .baseurls, .UpdateToR {
           position: fixed;
           bottom: 0;
           background-color: #567386;
@@ -156,10 +171,10 @@
       .settings p {
         max-width: 90%;
       }
-      .LiveUpdate input, .settings input, .baseurls input {
+      .LiveUpdate input, .settings input, .baseurls input, .UpdateToR input {
         margin: 4px 2px 4px 0;
       }
-      .btnClose,.btnCloseTokens, .btnCloseBases{
+      .btnClose,.btnCloseTokens, .btnCloseBases, .btnCloseToR {
         background-color: #bebebe;
          border-radius: 6px;
          padding: 2px 5px;
@@ -207,7 +222,9 @@
   </head>
 
   <body>
-    <h1>Airtable Quickview <a class="toglive" href="#">hide live tests</a></h1>
+    <header>
+    <h1>Airtable Quickview <input type="text" id="txtsearch" placeholder="search tickets" /></h1>   
+    </header>
     <div id="container">
       <div id="myids" name="myids" >
         <div class="loader">Airdrop incoming...Victory ahead!
@@ -238,6 +255,12 @@
       <div><input type="text" id="txtresultlink" placeholder="Result Link" /></div>
       <div><button class="btnLiveUpdate">Update</button></div>
       <button class="btnClose">&#8681; Cancel</button>
+    </div>
+    <div class="UpdateToR">
+      <h2>Update Field</h2>
+      <div><input type="text" id="txtField" placeholder="enter value" /></div>      
+      <div><button class="btnToR">Update</button></div>
+      <button class="btnCloseToR">&#8681; Cancel</button>
     </div>
     <div class="settings">
         <h2>Optimizely Tokens</h2>
