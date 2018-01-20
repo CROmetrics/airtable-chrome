@@ -270,7 +270,7 @@ function getBaseJson() {
       
       setTimeout(function(){
           bindTests(alltests);
-        },1100);
+        },2800);
   
 }
 
