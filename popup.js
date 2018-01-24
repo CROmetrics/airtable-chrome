@@ -1,9 +1,6 @@
-// Copyright (c) 2014 The Chromium Authors. All rights reserved.
-// Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
-
 let apikey, opt1, opt2, opt3, opt4, opt5, opt6;
 let filteredtests, alltests;
+let urlArray = [];
 function getUrlVars(url)
 {
     var vars = [], hash;
@@ -18,9 +15,6 @@ function getUrlVars(url)
 }
 
 function getSavedBase(basenum, callback) {
-  // See https://developer.chrome.com/apps/storage#type-StorageArea. We check
-  // for chrome.runtime.lastError to ensure correctness even when the API call
-  // fails.
   chrome.storage.sync.get(basenum, (items) => {
     callback(chrome.runtime.lastError ? null : items);
   });
@@ -31,7 +25,7 @@ function saveStore(key, v) {
 }
 function saveBase(basenum, baseurl) {
   chrome.storage.sync.set({[basenum]: baseurl});
-  //console.log(getUrlVars(baseurl)['api_key']);
+  urlArray.push(baseurl);
   chrome.storage.sync.set({"apikey": getUrlVars(baseurl)['api_key']});
 }
 function getTokenFromExName(ex) {
@@ -63,6 +57,7 @@ function bindTests(testtobind){
            //console.log('pop');
            //console.log(o); 
            for (var i = o.length - 1; i >= 0; i--) {
+            var TrelloId = '';
             if(o[i].fields.Status ){ 
               //console.log(o[i].fields);
               if(o[i].fields.Status === "Live" ||
@@ -83,13 +78,16 @@ function bindTests(testtobind){
                 }
 
                 if (o[i].fields["Trello Link"]){
+                 var startpos = o[i].fields["Trello Link"].indexOf('/c/') + 3;
+                 var endpos = o[i].fields["Trello Link"].indexOf('/', startpos + 1);
+                 TrelloId = o[i].fields["Trello Link"].substr(startpos, endpos - startpos );
                  outhtml += "<div class='cell'><a target='_new' href='" + o[i].fields["Trello Link"] +"' title='open trello' ><img style='width:20px' src='trello.ico' /></a></div>";
                 } else {
                  outhtml += "<div class='cell'><a data-baseid='" + o[i].baseid + "' data-recid='" + o[i].id + "' class='addTrello' title='add trello link' ><img style='width:20px' src='trello.png' /></a></div>";
 
                 }
                 outhtml += "</div><div class='status cell "+o[i].fields.Status.toLowerCase()+"'>";                
-                outhtml += "<select data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id +"'><option " + ((o[i].fields.Status === 'On Deck') ? "selected":"") + ">On Deck</option>";
+                outhtml += "<select data-trelloid='" + TrelloId + "' data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id +"'><option " + ((o[i].fields.Status === 'On Deck') ? "selected":"") + ">On Deck</option>";
                 outhtml += "<option " + ((o[i].fields.Status === 'Spec') ? "selected":"") + ">Spec</option>";
                 outhtml += "<option " + ((o[i].fields.Status === 'Implementation') ? "selected":"") + ">Implementation</option>";
                 outhtml += "<option " + ((o[i].fields.Status === 'In QA') ? "selected":"") + ">In QA</option>";
@@ -117,6 +115,7 @@ function bindTests(testtobind){
               var newstatus = $(this).find("option:selected").text(); 
               var row =$(this).parent().parent();
               var cell =$(this).parent();
+              var trellocardid = $(this).data('trelloid');
                                          
               var x = new XMLHttpRequest();
               x.open('PATCH','https://api.airtable.com/v0/' + base + '/Roadmap/' + recid + '?api_key=' + apikey);
@@ -131,11 +130,37 @@ function bindTests(testtobind){
                     //console.log(row);
                     row.removeClass().addClass(newstatus.toLowerCase()).addClass('row');
                     cell.removeClass().addClass(newstatus.toLowerCase()).addClass('cell').addClass('status');
+                    
                     if (newstatus==="Live"){
+                      
                       $('.LiveUpdate').slideToggle();
                       //console.log(base);
                       $('.btnLiveUpdate').attr('data-base', base);
                       $('.btnLiveUpdate').attr('data-recid', recid);                      
+                    } else if (newstatus==='Implementation'){
+
+                      $('.SendToDev').slideToggle();
+                      let developers;
+                      $('.btnDev').attr('data-trellocardid', trellocardid);
+                      GetImplementationLists(function(data) { 
+                        data = _.slice(data,4);
+                        data = _.sortBy(data, [function(o) { return o.data; }]);
+                        let devhtml =  data.map((dev)=> {
+                          return '<option value="' + dev.id + '">[' + dev.data + ' cards] ' + dev.name + '</option>';
+                        });
+                        $('#selDev').html(devhtml);  
+
+                        $("body").on("click", ".btnDev", function(event) {                          
+                          MoveCard($('.btnDev').data('trellocardid'), $('#selDev').val(), '54f4ad49bb26fe25381f2048' );
+                          $('.SendToDev').slideToggle();
+                          $("body").off("click", ".btnDev");                         
+                        });
+                        $("body").on("click", ".btnCloseDev", function(event) {              
+                          $('.SendToDev').slideToggle();    
+                          $("body").off("click", ".btnCloseDev");          
+                        });                         
+                      });
+                      
                     }
                  }
               };
@@ -239,38 +264,40 @@ function filterTests(query){
 }
 
 function getBaseJson() {
-  
   var records = []; 
- 
-  for (var bn = 6; bn > 0; bn--) {
-    let baseget = "base" + bn;
-  chrome.storage.sync.get([baseget], function (result) {
-        
-        if(result[baseget]){
-        var output = '';
-        //var link = "https://api.airtable.com/v0/app7sijAn7bwELvYg/Roadmap?api_key=keyCCt9CA9X31EYbH";
-        var x = new XMLHttpRequest();
-        var baseid =result[baseget].substring(result[baseget].lastIndexOf("v0/")+3,result[baseget].lastIndexOf("/"));
-        x.open('GET', result[baseget]);
-        x.onload = function() {
-           json = JSON.parse(x.responseText);
-           //console.log(json);
-
-           for (var i = json.records.length - 1; i >= 0; i--) {
-            json.records[i].baseid = baseid;
-            records.push(json.records[i]);            
-           }
-           alltests = records;
-                       
-        };
-        x.send();
-      }
+  
+  let requestsArray = urlArray.map((url) => {
+      let request = new Request(url, {
+          headers: new Headers({
+              'Content-Type': 'text/json'
+          }), 
+          method: 'GET'
       });
-      }
-      
-      setTimeout(function(){
-          bindTests(alltests);
-        },2800);
+
+      return request;
+  });
+
+    Promise.all(requestsArray.map((request) => {   
+        return fetch(request).then((response) => {          
+            return response.json();
+        }).then((data) => {
+          //console.log(request);
+            data.baseid = request.url.substring(request.url.lastIndexOf("v0/")+3,request.url.lastIndexOf("/"))
+            return data;
+        });
+      })).then((values) => {          
+          values.map((item) => {
+            for (var i = item.records.length - 1; i >= 0; i--) {
+              item.records[i].baseid = item.baseid;
+              records.push(item.records[i]);            
+            }
+            alltests = records;
+            console.log('values', alltests);
+            bindTests(alltests);
+          });
+          
+      }).catch(console.error.bind(console));
+        
   
 }
 
@@ -321,7 +348,8 @@ function populateSettings(){
     let txtTok = "txtOptToken" + xn;
       getSavedBase([xget], (saveurl) => {
         if (saveurl[xget] && saveurl[xget].length > 0) {
-           document.getElementById(xget).value = saveurl[xget];         
+           document.getElementById(xget).value = saveurl[xget];    
+           urlArray.push(saveurl[xget]);     
         } 
        })
       getSavedBase([xopt], (v) => {
@@ -425,5 +453,7 @@ document.addEventListener('DOMContentLoaded', () => {
     $("#txtsearch").on('input', function() { 
         filterTests($("#txtsearch").val());        
     });
+
+    
     
 });
