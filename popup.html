@@ -159,7 +159,7 @@
        .resultrow ul {
          margin: 2px 0;
        }
-      .LiveUpdate, .settings, .baseurls, .UpdateToR {
+      .LiveUpdate, .settings, .baseurls, .UpdateToR, .SendToDev {
           position: fixed;
           bottom: 0;
           background-color: #567386;
@@ -171,10 +171,10 @@
       .settings p {
         max-width: 90%;
       }
-      .LiveUpdate input, .settings input, .baseurls input, .UpdateToR input {
+      .LiveUpdate input, .settings input, .baseurls input, .UpdateToR input, SendToDev select {
         margin: 4px 2px 4px 0;
       }
-      .btnClose,.btnCloseTokens, .btnCloseBases, .btnCloseToR {
+      .btnClose,.btnCloseTokens, .btnCloseBases, .btnCloseToR, .btnCloseDev {
         background-color: #bebebe;
          border-radius: 6px;
          padding: 2px 5px;
@@ -208,6 +208,10 @@
         width: 60px;
         display: inline-block;
       }
+      #selDev {
+        width: 300px;
+        margin-bottom: 10px;
+      }
     </style>
 
     <!--
@@ -218,6 +222,7 @@
     -->
     <script src="lo.js"></script>
     <script src="jquery.js"></script>
+    <script src="apifunc.js"></script>
     <script src="popup.js"></script>
   </head>
 
@@ -261,6 +266,12 @@
       <div><input type="text" id="txtField" placeholder="enter value" /></div>      
       <div><button class="btnToR">Update</button></div>
       <button class="btnCloseToR">&#8681; Cancel</button>
+    </div>
+    <div class="SendToDev">
+      <h2>Choose Developer</h2>
+      <div><select id="selDev" ></select></div>      
+      <div><button class="btnDev">Assign Card</button></div>
+      <button class="btnCloseDev">&#8681; Cancel</button>
     </div>
     <div class="settings">
         <h2>Optimizely Tokens</h2>
