@@ -274,12 +274,15 @@ function getBaseJson() {
           method: 'GET'
       });
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       }
       
       setTimeout(function(){
           bindTests(alltests);
         },2800);
 =======
+=======
+>>>>>>> Stashed changes
 
       return request;
   });
@@ -305,6 +308,9 @@ function getBaseJson() {
           
       }).catch(console.error.bind(console));
         
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   
 }
