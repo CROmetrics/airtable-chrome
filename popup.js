@@ -51,14 +51,17 @@ function bindTests(testtobind) {
   $("body").off("click", ".btnCloseToR");
   $("body").off("click", ".addTrello");
   $("body").off("click", ".addResults");
+  $("body").off("click", ".btnLaunch");
   $("#myids").empty();
   var outhtml = "";
 
   var o = _.orderBy(testtobind, ['fields.Status', 'fields.Experiment'], ['asc', 'asc']);
-
+  
   for (var i = o.length - 1; i >= 0; i--) {
-    var TrelloId = '';
+    if(o[i].id==="recTiAnSPOkdJMiQS")
+      console.log(o[i]);
     if (o[i].fields.Status) {
+      
       //console.log(o[i].fields);
       if (o[i].fields.Status === "Live" ||
         o[i].fields.Status === "In QA" ||
@@ -76,15 +79,12 @@ function bindTests(testtobind) {
         }
 
         if (o[i].fields["Trello Link"]) {
-          var startpos = o[i].fields["Trello Link"].indexOf('/c/') + 3;
-          var endpos = o[i].fields["Trello Link"].indexOf('/', startpos + 1);
-          TrelloId = o[i].fields["Trello Link"].substr(startpos, endpos - startpos);
           outhtml += "<div class='cell'><a target='_new' href='" + o[i].fields["Trello Link"] + "' title='open trello' ><img style='width:20px' src='trello.ico' /></a></div>";
         } else {
           outhtml += "<div class='cell'><a data-baseid='" + o[i].baseid + "' data-recid='" + o[i].id + "' class='addTrello' title='add trello link' ><img style='width:20px' src='trello.png' /></a></div>";
         }
         outhtml += "</div><div class='status cell " + o[i].fields.Status.toLowerCase() + "'>";
-        outhtml += "<select data-trelloid='" + TrelloId + "' data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id + "'><option " + ((o[i].fields.Status === 'On Deck') ? "selected" : "") + ">On Deck</option>";
+        outhtml += "<select data-trelloid='" + o[i].fields.trelloid + "' data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id + "'><option " + ((o[i].fields.Status === 'On Deck') ? "selected" : "") + ">On Deck</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'Spec') ? "selected" : "") + ">Spec</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'Implementation') ? "selected" : "") + ">Implementation</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'In QA') ? "selected" : "") + ">In QA</option>";
@@ -98,11 +98,16 @@ function bindTests(testtobind) {
           outhtml += "<div class='cell'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' title='get results' class='btnGetResults' >" + o[i].fields.Experiment.substring(0, 63) + "</a></div>";
         else
           outhtml += "<div class='cell'>" + o[i].fields.Experiment.substring(0, 63) + "</div>";
+
+        if (o[i].fields.Status === 'Pending Approval' && o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment)) {
+          outhtml += "<div class='emailicon'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' data-name='" + o[i].fields.Experiment + "' class='btnLaunch' href='#'><img src='email.png' title='get approval to launch template'></a></div>";
+        }
         outhtml += "</div>";
         outhtml += "<div class='resultrow row" + o[i].fields.ExperimentId + "'><div id='txt" + o[i].fields.ExperimentId + "'></div></div>";
       }
     }
   }
+  
   $("#myids").html(outhtml);
 
   //Update status back to airtable
@@ -115,67 +120,76 @@ function bindTests(testtobind) {
     var cell = $(this).parent();
     var trellocardid = $(this).data('trelloid');
 
-    UpdateAtRecord('Status', newstatus, base, recid);
-    row.removeClass().addClass(newstatus.toLowerCase()).addClass('row');
-    cell.removeClass().addClass(newstatus.toLowerCase()).addClass('cell').addClass('status');
+    UpdateAtRecord('Status', newstatus, base, recid, function () {
+      row.removeClass().addClass(newstatus.toLowerCase()).addClass('row');
+      cell.removeClass().addClass(newstatus.toLowerCase()).addClass('cell').addClass('status');
 
-    if (newstatus === "Live") {
+      if (newstatus === "Live") {
 
-      $('.LiveUpdate').slideToggle();
-      //console.log(base);
-      $('.btnLiveUpdate').attr('data-base', base);
-      $('.btnLiveUpdate').attr('data-recid', recid);
-    } else if (newstatus === 'Implementation') {
+        $('.LiveUpdate').slideToggle();
+        //console.log(base);
+        $('.btnLiveUpdate').attr('data-base', base);
+        $('.btnLiveUpdate').attr('data-recid', recid);
+      } else if (newstatus === 'Implementation') {
 
-      $('.SendToDev').slideToggle();
-      let developers;
-      $('.btnDev').attr('data-trellocardid', trellocardid);
-      GetImplementationLists(function (data) {
+        $('.SendToDev').slideToggle();
+        let developers;
+        $('.btnDev').attr('data-trellocardid', trellocardid);
+        GetImplementationLists(function (data) {
 
-        data = _.slice(data, 4);
-        data = _.sortBy(data, [function (o) { return o.data; }]);
-        console.log(trellomembers);
-        let devhtml = data.map((dev) => {
-          let m = _.find(trellomembers, function (o) { return dev.name.startsWith(o.fullName); });
-          if (m)
-            return '<option value="' + dev.id + '|' + m.id + '|' + m.username + '">[' + dev.data + ' cards] ' + dev.name + '</option>';
+          data = _.slice(data, 4);
+          data = _.sortBy(data, [function (o) { return o.data; }]);
+          console.log(trellomembers);
+          let devhtml = data.map((dev) => {
+            let m = _.find(trellomembers, function (o) { return dev.name.startsWith(o.fullName); });
+            if (m)
+              return '<option value="' + dev.id + '|' + m.id + '|' + m.username + '">[' + dev.data + ' cards] ' + dev.name + '</option>';
+          });
+          $('#selDev').html(devhtml);
+
+          $("body").on("click", ".btnDev", function (event) {
+            let listid = $('#selDev').val().split('|')[0];
+            let memberid = $('#selDev').val().split('|')[1];
+            let username = $('#selDev').val().split('|')[2];
+            console.log("listid" + listid);
+            console.log("memeberid" + memberid);
+            MoveCard($('.btnDev').data('trellocardid'), listid, memberid, username);
+            $('.SendToDev').slideToggle();
+            $("body").off("click", ".btnDev");
+          });
+          $("body").on("click", ".btnCloseDev", function (event) {
+            $('.SendToDev').slideToggle();
+            $("body").off("click", ".btnCloseDev");
+          });
         });
-        $('#selDev').html(devhtml);
+      } else if (newstatus === 'Pending Approval' || newstatus === 'In QA') {
 
-        $("body").on("click", ".btnDev", function (event) {
-          let listid = $('#selDev').val().split('|')[0];
-          let memberid = $('#selDev').val().split('|')[1];
-          let username = $('#selDev').val().split('|')[2];
-          console.log("listid" + listid);
-          console.log("memeberid" + memberid);
-          MoveCard($('.btnDev').data('trellocardid'), listid,  memberid, username);
-          $('.SendToDev').slideToggle();
-          $("body").off("click", ".btnDev");
+        //Pull experiment id from trello card and save in airtable, then refresh tests
+        GetExperimentId(trellocardid, function (expid) {
+          UpdateAtRecord('ExperimentId', expid, base, recid, function () {
+            getBaseJson();
+            return;
+          });
         });
-        $("body").on("click", ".btnCloseDev", function (event) {
-          $('.SendToDev').slideToggle();
-          $("body").off("click", ".btnCloseDev");
-        });
-      });
-    }
+
+      } else if (newstatus === 'Completed' || newstatus === 'Blocked') {
+        getBaseJson();
+        return;
+      }
+    });
   });
 
   //Pull results from Optimizely
   $("body").on("click", ".btnGetResults", function (event) {
     var token = $(this).data('token');
     var exid = $(this).data('exid');
-    var resultlink = 'https://api.optimizely.com/v2/experiments/' + exid + '/results';
     $('.row' + exid).slideToggle();
 
     if (!$('.row' + exid).is(':visible'))
       return;
-    var x = new XMLHttpRequest();
-    x.open('GET', resultlink);
-    x.setRequestHeader("Authorization", "Bearer " + token);
 
-    x.onload = function () {
-      json = JSON.parse(x.responseText);
-      console.log(json);
+    GetOptimizelyResults(exid, token, function (json) {
+
       var rtext = "";
       var start = "Started on: " + json.start_time + "<br>";
 
@@ -188,12 +202,13 @@ function bindTests(testtobind) {
         //metric name
         rtext += "<li>" + json.metrics[c].name + "<br><ul>";
         let o = 0;
+        console.log(json.metrics[c]);
         for (var prop in json.metrics[c].results) {
           if (json.metrics[c].results[prop].is_baseline === false) {
             var lift = Math.round((json.metrics[c].results[prop].lift.value * 100) * 10) / 10 + "%";
             var ss = Math.floor(json.metrics[c].results[prop].lift.significance * 100) + "%";
             //variation results
-            rtext += "<li>" + "V" + o + ": " + lift + " @" + ss + "</li>";
+            rtext += "<li>" + json.metrics[c].results[prop].name + ": " + lift + " @" + ss + "</li>";
           }
           o++;
         }
@@ -202,9 +217,32 @@ function bindTests(testtobind) {
       rtext += "</ul>";
       //console.log(rtext);
       $('#txt' + exid).html(rtext);
+    });
 
-    };
-    x.send();
+  });
+
+  //Get launch email template 
+  $("body").on("click", ".btnLaunch", function (event) {
+    var token = $(this).data('token');
+    var exid = $(this).data('exid');
+    var exname = $(this).data('name');
+    var rtext = "";
+    $('.row' + exid).slideToggle();
+
+    if (!$('.row' + exid).is(':visible'))
+      return;
+
+    let launchtemp = "<p>[Approval to Launch]" + exname + "</p><p>Hi xxxx,</p><p>This test is now ready to launch.</p><p>If there is no feedback, just reply 'approved' and we will get this test launched.</p><p>Live Preview: (We recommend copy & pasting the links into an incognito )</p><p>{links}</p><p>Thanks,<br></p>";
+    let linkblock = "";
+    GetPreviewLinks(exid, token, function (x) {
+      console.log(x);
+      x.forEach(function (link) {
+        linkblock += "<a href='" + link.link + "' >" + link.name + "</a><br>";
+      });
+      rtext = launchtemp.replace('{links}', linkblock);
+      $('#txt' + exid).html(rtext);
+    });
+
   });
 
   $("body").on("click", ".addTrello", function (event) {
@@ -256,8 +294,6 @@ function filterTests(query) {
   bindTests(filteredtests);
 }
 
-
-//let opt1;
 function setOptTokens() {
   for (let xn = 1; xn < 7; xn++) {
     let xget = "opt" + xn;
@@ -281,6 +317,15 @@ function setOptTokens() {
       }
     })
   }
+  getSavedBase('trellokey', (tok) => {
+    trellokey = tok.trellokey;
+  });
+  getSavedBase('trellotoken', (tok) => {
+    trellotoken = tok.trellotoken;
+    setTimeout(() => {
+      GetTrelloMembers();
+    }, 500);
+  });
 }
 
 function populateSettings() {
@@ -300,8 +345,17 @@ function populateSettings() {
         $('#' + txtPre).val(v[xopt].substr(0, v[xopt].indexOf('|')));
         $('#' + txtTok).val(v[xopt].substr(v[xopt].indexOf('|') + 1, v[xopt].length));
       }
-    })
+    });
+
   }
+  getSavedBase('trellokey', (v) => {
+    //console.log(v);
+    $('#txtTrelloKey').val(v.trellokey);
+  });
+  getSavedBase('trellotoken', (v) => {
+    //console.log(v);
+    $('#txtTrelloToken').val(v.trellotoken);
+  });
   setTimeout(function () {
     if ($('#base1').val().length === 0) {
       $("myids").empty();
@@ -311,8 +365,6 @@ function populateSettings() {
     }
   }, 1000);
 }
-
-
 
 document.addEventListener('DOMContentLoaded', () => {
 
@@ -366,6 +418,8 @@ document.addEventListener('DOMContentLoaded', () => {
     saveStore("opt4", $("#txtPrefix4").val() + "|" + $('#txtOptToken4').val());
     saveStore("opt5", $("#txtPrefix5").val() + "|" + $('#txtOptToken5').val());
     saveStore("opt6", $("#txtPrefix6").val() + "|" + $('#txtOptToken6').val());
+    saveStore("trellokey", $("#txtTrelloKey").val());
+    saveStore("trellotoken", $("#txtTrelloToken").val());
     setOptTokens();
     getBaseJson();
     $('.settings').slideToggle();
@@ -397,6 +451,6 @@ document.addEventListener('DOMContentLoaded', () => {
     filterTests($("#txtsearch").val());
   });
 
-  GetTrelloMembers();
+
 
 });

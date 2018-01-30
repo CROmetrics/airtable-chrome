@@ -9,8 +9,7 @@
     <title>Getting Started Extension's Popup</title>
     <style type="text/css">
       body {
-        padding: 0px;
-        //white-space: nowrap;
+        padding: 0px;        
         margin: 0;
         min-width: 685px;
         min-height: 400px;
@@ -40,18 +39,13 @@
 
       }
 
-      #container {
-        //align-items: center;
-        //display: flex;
-        //justify-content: space-between;
-        
+      #container {             
         padding: 43px 12px 77px;
         color: #333;
         font-size: 14px;
       }
       .row {
-        padding: 6px 0 6px;
-        //border-top: solid 1px #ccc;
+        padding: 6px 0 6px;        
         border-bottom: solid 1px #ccc;
         
       }
@@ -212,14 +206,18 @@
         width: 300px;
         margin-bottom: 10px;
       }
+      .emailicon {
+        float: right;
+      }
+      .emailicon a {
+        width:25px;
+        display: block;
+      }
+      .emailicon img {
+        display: block;
+        width: 100%;
+      }
     </style>
-
-    <!--
-      - JavaScript and HTML must be in separate files: see our Content Security
-      - Policy documentation[1] for details and explanation.
-      -
-      - [1]: https://developer.chrome.com/extensions/contentSecurityPolicy
-    -->
     <script src="lo.js"></script>
     <script src="jquery.js"></script>
     <script src="apifunc.js"></script>
@@ -299,8 +297,14 @@
         <div class="srow">
           <div class="scell"><input type="text" id="txtPrefix6" placeholder="Client Prefix"></div>        
           <div class="scell"><input type="text" id="txtOptToken6" placeholder="Optimizely Token"></div>
+        </div>         
+        <h2>Trello Key and Token</h2>
+        <p>These can be obtained here: <a href="https://trello.com/app-key" target="_new">https://trello.com/app-key</a>.</p>
+        <div class="srow">
+          <div class="scell"><input type="text" id="txtTrelloKey" placeholder="Trello Key"></div>        
+          <div class="scell"><input type="text" id="txtTrelloToken" placeholder="Trello Token"></div>
         </div> 
-        <button id="btnSaveOptTokens">Save Tokens</button>  
+        <button id="btnSaveOptTokens">Save</button>
         <button class="btnCloseTokens">&#8681; Cancel</button>      
     </div>
   </body>
