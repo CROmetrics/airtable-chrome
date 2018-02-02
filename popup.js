@@ -100,7 +100,9 @@ function bindTests(testtobind) {
           outhtml += "<div class='cell'>" + o[i].fields.Experiment.substring(0, 63) + "</div>";
 
         if (o[i].fields.Status === 'Pending Approval' && o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment)) {
-          outhtml += "<div class='emailicon'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' data-name='" + o[i].fields.Experiment + "' class='btnLaunch' href='#'><img src='email.png' title='get approval to launch template'></a></div>";
+          if(Number.isInteger(o[i].fields.ExperimentId)){
+            outhtml += "<div class='emailicon'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' data-name='" + o[i].fields.Experiment + "' class='btnLaunch' href='#'><img src='email.png' title='get approval to launch template'></a></div>";
+          } 
         }
         outhtml += "</div>";
         outhtml += "<div class='resultrow row" + o[i].fields.ExperimentId + "'><div id='txt" + o[i].fields.ExperimentId + "'></div></div>";
@@ -166,10 +168,12 @@ function bindTests(testtobind) {
 
         //Pull experiment id from trello card and save in airtable, then refresh tests
         GetExperimentId(trellocardid, function (expid) {
-          UpdateAtRecord('ExperimentId', expid, base, recid, function () {
-            getBaseJson();
-            return;
-          });
+          if(Number.isInteger(expid)){
+            UpdateAtRecord('ExperimentId', expid, base, recid, function () {
+              getBaseJson();
+              return;
+            });
+         }
         });
 
       } else if (newstatus === 'Completed' || newstatus === 'Blocked') {
