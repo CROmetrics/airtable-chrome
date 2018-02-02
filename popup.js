@@ -84,7 +84,7 @@ function bindTests(testtobind) {
           outhtml += "<div class='cell'><a data-baseid='" + o[i].baseid + "' data-recid='" + o[i].id + "' class='addTrello' title='add trello link' ><img style='width:20px' src='trello.png' /></a></div>";
         }
         outhtml += "</div><div class='status cell " + o[i].fields.Status.toLowerCase() + "'>";
-        outhtml += "<select data-trelloid='" + o[i].fields.trelloid + "' data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id + "'><option " + ((o[i].fields.Status === 'On Deck') ? "selected" : "") + ">On Deck</option>";
+        outhtml += "<select data-trelloid='" + o[i].trelloid + "' data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id + "'><option " + ((o[i].fields.Status === 'On Deck') ? "selected" : "") + ">On Deck</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'Spec') ? "selected" : "") + ">Spec</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'Implementation') ? "selected" : "") + ">Implementation</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'In QA') ? "selected" : "") + ">In QA</option>";

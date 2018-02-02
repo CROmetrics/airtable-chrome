@@ -176,7 +176,9 @@ function MoveCard(cardid, listid, memberToAdd, username, callback) {
     console.log(trellokey);
     var date = new Date();
     date.setDate(date.getDate() + 3);
-    if (date.getDay() === 0) {
+    if(date.getDay() === 1) {
+        date.setDate(date.getDate() + 1);
+    } else if (date.getDay() === 0) {
         date.setDate(date.getDate() + 2);
     } else if (date.getDay() === 6) {
         date.setDate(date.getDate() + 3);
