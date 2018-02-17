@@ -172,18 +172,24 @@ function AddMemberToCard(cardid, memberId) {
     xhr.send(data);
 }
 
-function MoveCard(cardid, listid, memberToAdd, username, callback) {
+function MoveCard(cardid, listid, memberToAdd, username, comment, due, callback) {
     console.log(trellokey);
-    var date = new Date();
-    date.setDate(date.getDate() + 3);
-    if(date.getDay() === 1) {
-        date.setDate(date.getDate() + 1);
-    } else if (date.getDay() === 0) {
-        date.setDate(date.getDate() + 2);
-    } else if (date.getDay() === 6) {
+    var duedate;
+    if (due) {
+        duedate = due;
+    } else {
+        var date = new Date();
         date.setDate(date.getDate() + 3);
+        if(date.getDay() === 1) {
+            date.setDate(date.getDate() + 1);
+        } else if (date.getDay() === 0) {
+            date.setDate(date.getDate() + 2);
+        } else if (date.getDay() === 6) {
+            date.setDate(date.getDate() + 3);
+        }
+        var duedate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
     }
-    var duedate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+
     var data = JSON.stringify(false);
 
     var xhr = new XMLHttpRequest();
@@ -193,7 +199,7 @@ function MoveCard(cardid, listid, memberToAdd, username, callback) {
         if (this.readyState === this.DONE) {
             //console.log(this);
             AddMemberToCard(cardid, memberToAdd);
-            AddTrelloComment(username, cardid);
+            AddTrelloComment(username, cardid, comment);
         }
     });
 
@@ -218,16 +224,19 @@ function GetTrelloMembers() {
     xhr.send(data);
 }
 
-function AddTrelloComment(username, cardid) {
+function AddTrelloComment(username, cardid, comment) {
     var data = null;
     var xhr = new XMLHttpRequest();
+    if (comment.length < 1) {
+        comment =     "here's another one for the queue. Let me know if any questions. Thanks!";
 
+    }
     xhr.addEventListener("readystatechange", function () {
         if (this.readyState === this.DONE) {
             console.log(this.responseText);
         }
     });
-    comment = encodeURIComponent("@" + username + " here's another one for the queue. Let me know if any questions. Thanks!");
+    comment = encodeURIComponent("@" + username + " " + comment);
 
     xhr.open("POST", "https://api.trello.com/1/cards/" + cardid + "/actions/comments?text=" + comment + "&key=" + trellokey + "&token=" + trellotoken);
     xhr.send(data);

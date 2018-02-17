@@ -162,6 +162,16 @@
           padding: 0 20px 40px;
           display: none;
       }
+      .SendToDev div{
+        margin-bottom: 10px;
+      }
+      .SendToDev label {
+        display: block;
+      }
+      .SendToDev textarea {
+        height: 100px;
+        width: 300px;
+      }
       .settings p {
         max-width: 90%;
       }
@@ -267,7 +277,10 @@
     </div>
     <div class="SendToDev">
       <h2>Choose Developer</h2>
-      <div><select id="selDev" ></select></div>      
+      <div><select id="selDev" ></select></div>   
+      <div><label>Due Date (defaults to 3 business days):</label> <input id="txtDueDate" type="text" placeholder="mm/dd/yyyy" /></div>   
+      <div><label>Comment:</label> 
+        <textarea id="txtComment" placeholder="Leave blank for default message.  Comments will automatically be prefaced with @ tag for the selected developer."></textarea></div>
       <div><button class="btnDev">Assign Card</button></div>
       <button class="btnCloseDev">&#8681; Cancel</button>
     </div>

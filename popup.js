@@ -56,12 +56,11 @@ function bindTests(testtobind) {
   var outhtml = "";
 
   var o = _.orderBy(testtobind, ['fields.Status', 'fields.Experiment'], ['asc', 'asc']);
-  
+
   for (var i = o.length - 1; i >= 0; i--) {
-    if(o[i].id==="recTiAnSPOkdJMiQS")
-      console.log(o[i]);
+
     if (o[i].fields.Status) {
-      
+
       //console.log(o[i].fields);
       if (o[i].fields.Status === "Live" ||
         o[i].fields.Status === "In QA" ||
@@ -100,16 +99,17 @@ function bindTests(testtobind) {
           outhtml += "<div class='cell'>" + o[i].fields.Experiment.substring(0, 63) + "</div>";
 
         if (o[i].fields.Status === 'Pending Approval' && o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment)) {
-          if(Number.isInteger(o[i].fields.ExperimentId)){
+          if (parseInt(o[i].fields.ExperimentId,10)> 0){
             outhtml += "<div class='emailicon'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' data-name='" + o[i].fields.Experiment + "' class='btnLaunch' href='#'><img src='email.png' title='get approval to launch template'></a></div>";
-          } 
+          }
+
         }
         outhtml += "</div>";
         outhtml += "<div class='resultrow row" + o[i].fields.ExperimentId + "'><div id='txt" + o[i].fields.ExperimentId + "'></div></div>";
       }
     }
   }
-  
+
   $("#myids").html(outhtml);
 
   //Update status back to airtable
@@ -153,9 +153,11 @@ function bindTests(testtobind) {
             let listid = $('#selDev').val().split('|')[0];
             let memberid = $('#selDev').val().split('|')[1];
             let username = $('#selDev').val().split('|')[2];
+            let comment = $('#txtComment').val();
+            let due = $('#txtDueDate').val();
             console.log("listid" + listid);
             console.log("memeberid" + memberid);
-            MoveCard($('.btnDev').data('trellocardid'), listid, memberid, username);
+            MoveCard($('.btnDev').data('trellocardid'), listid, memberid, username, comment, due);
             $('.SendToDev').slideToggle();
             $("body").off("click", ".btnDev");
           });
@@ -168,12 +170,12 @@ function bindTests(testtobind) {
 
         //Pull experiment id from trello card and save in airtable, then refresh tests
         GetExperimentId(trellocardid, function (expid) {
-          if(Number.isInteger(expid)){
+          if (Number.isInteger(expid)) {
             UpdateAtRecord('ExperimentId', expid, base, recid, function () {
               getBaseJson();
               return;
             });
-         }
+          }
         });
 
       } else if (newstatus === 'Completed' || newstatus === 'Blocked') {
