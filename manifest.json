@@ -5,7 +5,7 @@
   "description": "See all test in your pipeline and update them too",
   "version": "1.0",
   "browser_action": {
-    "default_icon": "favicon.ico",
+    "default_icon": "crometrics-16.png",
     "default_popup": "popup.html"
   },
   "permissions": [
@@ -13,5 +13,8 @@
     "storage",
     "https://api.airtable.com/v0/app7sijAn7bwELvYg/Roadmap",
     "https://cdn.jsdelivr.net/"
-  ]
+  ],
+  "icons": { "16": "crometrics-16.png",
+    "48": "crometrics-48.png",
+   "128": "crometrics-128.png" }
 }
