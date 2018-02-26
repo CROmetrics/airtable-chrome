@@ -44,7 +44,7 @@ function getBaseJson() {
         
         //Pull out test that we want to scan for transition to QA or Done Ready
         cardstoscan = _.filter(alltests, function (c) {
-            return c.fields.Status === "In QA" || c.fields.Status === "Implementation";
+            return c.fields.Status === "In QA" || c.fields.Status === "Implementation" || c.fields.Status === "Live";
         });
         
         //Fire off more promises to scan each card to see what list it's on now
@@ -52,28 +52,42 @@ function getBaseJson() {
             return ScanCard(test.trelloid).then((response) => {
                 return response;
             }).then((data) => {
-                
+                //console.log(test);
                 let Status = test.fields.Status;
                 let BaseId = test.baseid;
                 let RecId = test.id;
                 data.id = test.id;
-                if (data !== "no change" && test.fields.Status !== data.status) {
-                   //update airtable record
+                //console.log(test.fields);  
+                //console.log(data);   
+                if (!data.status)
+                    data.status = test.fields.Status; 
+                //Check to see if card moved to a QA/Done if so update airtable
+                if (data.change !== "no change" && test.fields.Status !== data.status) {
+                    //update airtable record                                                             
                    UpdateAtRecord('Status', data.status, BaseId, RecId);  
-                   UpdateAtRecord('ExperimentId', data.exid, BaseId, RecId);                
-                }
+                   if (parseInt(data.exid, 10) > 0)
+                    UpdateAtRecord('ExperimentId', data.exid, BaseId, RecId);                
+                } else if (test.fields.ExperimentId !== data.exid) {
+                    //This is for cards that are live but didnt have a experiment id, we use the id we scanned and update                   
+                    if (parseInt(data.exid, 10) > 0)
+                    UpdateAtRecord('ExperimentId', data.exid, BaseId, RecId);   
+                } 
                 return data;                
             })
         })).then((values) => {
-            console.log(values);
+            console.log('---');
             alltests.map(function (test) {
                 values.map(function (utest) {
-                    if (utest !== "no change") {                        
+                    if (utest.change !== "no change") {                        
                         if (test.id === utest.id) {                            
                             if( test.fields.Status !== utest.status) {
-                                //update main array object status                                
+                                //update main array object status  
+                                //console.log(utest);                              
                                 test.fields.Status = utest.status;      
                                 test.fields.ExperimentId = utest.exid;                     
+                            } else if (test.fields.ExperimentId !== utest.exid) {
+                                if (parseInt(utest.exid, 10) > 0)
+                                    test.fields.ExperimentId = utest.exid;            
                             }
                             
                         }
@@ -107,8 +121,44 @@ function UpdateAtRecord(recordname, value, baseid, recid, callback) {
     x.send(JSON.stringify({ fields: { [recordname]: value } }));
 }
 
+function GetAtRecord(baseid, recid, callback) {
+    var x = new XMLHttpRequest();
+    x.open('GET', 'https://api.airtable.com/v0/' + baseid + '/Roadmap/' + recid + '?api_key=' + apikey);
+    x.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    x.onload = function () {
+        //console.log(x);
+        json = JSON.parse(x.responseText);
+        if (json.error) {
+            alert(json.error.type);
+        }
+        return callback(json);
+    };
+    x.send();
+}
+
 
 //Trello Calls
+function ScanBoardForListId(boardid, namecontains, callback) {
+    var data = JSON.stringify(false);
+    var xhr = new XMLHttpRequest();
+    xhr.withCredentials = false;
+    xhr.addEventListener("readystatechange", function () {
+        
+        if (this.readyState === this.DONE) {
+            let lists = JSON.parse(this.responseText);
+         
+           for(var b of lists) { 
+                if(b.name.includes(namecontains)){
+                    return callback(b.id, b.idBoard);
+                }
+           }
+        }
+    });
+
+    xhr.open("GET", "https://api.trello.com/1/boards/" + boardid + "/lists?key=" + trellokey + "&token=" + trellotoken);
+    xhr.send(data);
+}
+
 function GetImplementationLists(callback) {
     var data = JSON.stringify(false);
     var xhr = new XMLHttpRequest();
@@ -120,7 +170,7 @@ function GetImplementationLists(callback) {
             let listurl = 'https://api.trello.com/1/lists/{listid}/cards?key=' + trellokey + '&token=' + trellotoken;
             //Use the lists info to build api calls to get card count in each list
             let requestsArray = lists.map((list) => {
-                console.log(list);
+                //console.log(list);
                 let request = new Request(listurl.replace('{listid}', list.id, listurl), {
                     headers: new Headers({
                         'Content-Type': 'text/json'
@@ -156,6 +206,7 @@ function GetImplementationLists(callback) {
     xhr.send(data);
 }
 
+
 function AddMemberToCard(cardid, memberId) {
     var data = JSON.stringify(false);
     var xhr = new XMLHttpRequest();
@@ -172,8 +223,8 @@ function AddMemberToCard(cardid, memberId) {
     xhr.send(data);
 }
 
-function MoveCard(cardid, listid, memberToAdd, username, comment, due, callback) {
-    console.log(trellokey);
+function MoveCard(cardid, listid, memberToAdd, username, comment, due, boardid, callback) {
+   // console.log(trellokey);
     var duedate;
     if (due) {
         duedate = due;
@@ -190,6 +241,9 @@ function MoveCard(cardid, listid, memberToAdd, username, comment, due, callback)
         var duedate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
     }
 
+    if (!boardid) 
+    boardid = '54f4ad49bb26fe25381f2048';
+
     var data = JSON.stringify(false);
 
     var xhr = new XMLHttpRequest();
@@ -198,12 +252,18 @@ function MoveCard(cardid, listid, memberToAdd, username, comment, due, callback)
     xhr.addEventListener("readystatechange", function () {
         if (this.readyState === this.DONE) {
             //console.log(this);
-            AddMemberToCard(cardid, memberToAdd);
-            AddTrelloComment(username, cardid, comment);
+            if (memberToAdd) {
+                AddMemberToCard(cardid, memberToAdd);
+                AddTrelloComment(username, cardid, comment);
+            } else {
+                AddTrelloComment(username, cardid, comment);
+            }           
+
         }
     });
 
-    xhr.open("PUT", "https://api.trello.com/1/cards/" + cardid + "?idList=" + listid + "&idBoard=54f4ad49bb26fe25381f2048&due=" + duedate + "&key=" + trellokey + "&token=" + trellotoken);
+    //console.log("https://api.trello.com/1/cards/" + cardid + "?idList=" + listid + "&idBoard=" + boardid + "&due=" + duedate + "&key=" + trellokey + "&token=" + trellotoken);
+    xhr.open("PUT", "https://api.trello.com/1/cards/" + cardid + "?idList=" + listid + "&idBoard=" + boardid + "&due=" + duedate + "&key=" + trellokey + "&token=" + trellotoken);
     xhr.send(data);
 
 }
@@ -233,10 +293,14 @@ function AddTrelloComment(username, cardid, comment) {
     }
     xhr.addEventListener("readystatechange", function () {
         if (this.readyState === this.DONE) {
-            console.log(this.responseText);
+            //console.log(this.responseText);
         }
     });
-    comment = encodeURIComponent("@" + username + " " + comment);
+
+    if(username)
+        comment = encodeURIComponent("@" + username + " " + comment);
+    else 
+        comment = encodeURIComponent(comment);
 
     xhr.open("POST", "https://api.trello.com/1/cards/" + cardid + "/actions/comments?text=" + comment + "&key=" + trellokey + "&token=" + trellotoken);
     xhr.send(data);
@@ -266,9 +330,13 @@ function ScanCard(cardid) {
         var test = {};
         xhr.addEventListener("readystatechange", function () {
             
-            if (this.readyState === this.DONE) {
+            if (this.status === 404) {
+                test.change = "no change";
+                //test.exid =  desc.substr(exposition, exlength);
+                return resolve(test);
+             } else if (this.readyState === this.DONE) {
                 let card = JSON.parse(this.responseText);
-                console.log(card);
+                //console.log(card);
                 let desc = card.desc;
                 let exposition = desc.indexOf('/experiments/') + 13;
                 let endposition = desc.indexOf('\n', exposition);
@@ -280,17 +348,21 @@ function ScanCard(cardid) {
                     //test.id = card.id;
                     return resolve(test);
                 } else if (card.idList === "54f4ad58842c59cc3798bcf7") {
-                    test.status = "Pending Approval";
+                    test.status = "Ready for PM";
                     test.exid = desc.substr(exposition, exlength);
                     //test.id = card.id;
                     return resolve(test);
                 }
-                else return resolve('no change');
+                else {
+                    test.change = "ex update";
+                    test.exid =  desc.substr(exposition, exlength);
+                    return resolve(test);
+                }
             }
         });
         // Handle network errors
         xhr.onerror = function () {
-            reject(Error("Error"));
+            console.log('error');
         };
         xhr.open("GET", "https://api.trello.com/1/cards/" + cardid + "?key=" + trellokey + "&token=" + trellotoken);
         xhr.send(data);

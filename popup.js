@@ -1,6 +1,8 @@
 let apikey, opt1, opt2, opt3, opt4, opt5, opt6;
 let filteredtests, alltests;
 let urlArray = [];
+let atArray = [];
+let tbArray = [];
 
 function getUrlVars(url) {
   var vars = [], hash;
@@ -43,6 +45,12 @@ function getTokenFromExName(ex) {
 }
 /// End Setting Functions
 
+function GetAirtableUrl(clientcode, recid) {
+    if(atArray[clientcode]){
+      return "https://airtable.com/" + atArray[clientcode] + "/" + recid;
+    } else return null;
+}
+
 /// Bind Test To DOM
 function bindTests(testtobind) {
 
@@ -67,9 +75,10 @@ function bindTests(testtobind) {
         o[i].fields.Status === "Spec" ||
         o[i].fields.Status === "Implementation" ||
         o[i].fields.Status === "On Deck" ||
-        o[i].fields.Status === "Pending Approval"
+        o[i].fields.Status === "Pending Approval" ||
+        o[i].fields.Status === "Ready for PM"
       ) {
-        outhtml += "<div class='row " + o[i].fields.Status.toLowerCase() + "'>";
+        outhtml += "<div class='row " + o[i].fields.Status.toLowerCase() + "' data-clientcode='" + o[i].fields.Experiment.substring(0, 3) + "'>";
         outhtml += "<div class='icos'>";
         if (o[i].fields.Results) {
           outhtml += "<div class='cell'><a href='" + o[i].fields.Results + "' target='_new' title='open results tab' ><img style='width:20px' src='opt.ico' /></a></div>";
@@ -82,6 +91,11 @@ function bindTests(testtobind) {
         } else {
           outhtml += "<div class='cell'><a data-baseid='" + o[i].baseid + "' data-recid='" + o[i].id + "' class='addTrello' title='add trello link' ><img style='width:20px' src='trello.png' /></a></div>";
         }
+
+        if (GetAirtableUrl(o[i].fields.Experiment.substring(0, 3),  o[i].id)) {
+          outhtml += "<div class='cell'><a target='_new' href='" + GetAirtableUrl(o[i].fields.Experiment.substring(0, 3),  o[i].id) + "' title='open airtable record' ><img style='width:20px' src='airtable.png' /></a></div>";
+        } 
+
         outhtml += "</div><div class='status cell " + o[i].fields.Status.toLowerCase() + "'>";
         outhtml += "<select data-trelloid='" + o[i].trelloid + "' data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id + "'><option " + ((o[i].fields.Status === 'On Deck') ? "selected" : "") + ">On Deck</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'Spec') ? "selected" : "") + ">Spec</option>";
@@ -89,17 +103,19 @@ function bindTests(testtobind) {
         outhtml += "<option " + ((o[i].fields.Status === 'In QA') ? "selected" : "") + ">In QA</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'Live') ? "selected" : "") + ">Live</option>";
         outhtml += "<option " + ((o[i].fields.Status === 'Pending Approval') ? "selected" : "") + ">Pending Approval</option>";
+        outhtml += "<option " + ((o[i].fields.Status === 'Ready for PM') ? "selected" : "") + ">Ready for PM</option>";
         outhtml += "<option>Blocked</option>";
         outhtml += "<option>Completed</option>";
         outhtml += "<option>Softcoded</option></select>";
         outhtml += "</div>"
-        if (o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment))
+        if (o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment) && o[i].fields.Status === "Live")
           outhtml += "<div class='cell'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' title='get results' class='btnGetResults' >" + o[i].fields.Experiment.substring(0, 63) + "</a></div>";
+        
         else
           outhtml += "<div class='cell'>" + o[i].fields.Experiment.substring(0, 63) + "</div>";
 
-        if (o[i].fields.Status === 'Pending Approval' && o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment)) {
-          if (parseInt(o[i].fields.ExperimentId,10)> 0){
+        if ((o[i].fields.Status === 'Ready for PM' || o[i].fields.Status === 'Pending Approval') && o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment)) {
+          if (parseInt(o[i].fields.ExperimentId, 10) > 0) {
             outhtml += "<div class='emailicon'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' data-name='" + o[i].fields.Experiment + "' class='btnLaunch' href='#'><img src='email.png' title='get approval to launch template'></a></div>";
           }
 
@@ -121,6 +137,8 @@ function bindTests(testtobind) {
     var row = $(this).parent().parent();
     var cell = $(this).parent();
     var trellocardid = $(this).data('trelloid');
+    var clientcode = row.data('clientcode');
+
 
     UpdateAtRecord('Status', newstatus, base, recid, function () {
       row.removeClass().addClass(newstatus.toLowerCase()).addClass('row');
@@ -132,6 +150,20 @@ function bindTests(testtobind) {
         //console.log(base);
         $('.btnLiveUpdate').attr('data-base', base);
         $('.btnLiveUpdate').attr('data-recid', recid);
+
+        GetAtRecord(base, recid, function (rec) {
+          $('#txtexid').val(rec.fields.ExperimentId);
+          $('#txtresultlink').val(rec.fields.Results);
+        });
+
+        if(tbArray[clientcode]){
+          ScanBoardForListId(tbArray[clientcode], 'Launch', function(listid, boardid) {
+
+            MoveCard(trellocardid, listid, null, null, "Test launched", null, boardid);
+
+          });
+        }
+
       } else if (newstatus === 'Implementation') {
 
         $('.SendToDev').slideToggle();
@@ -141,7 +173,7 @@ function bindTests(testtobind) {
 
           data = _.slice(data, 4);
           data = _.sortBy(data, [function (o) { return o.data; }]);
-          console.log(trellomembers);
+          //console.log(trellomembers);
           let devhtml = data.map((dev) => {
             let m = _.find(trellomembers, function (o) { return dev.name.startsWith(o.fullName); });
             if (m)
@@ -155,9 +187,9 @@ function bindTests(testtobind) {
             let username = $('#selDev').val().split('|')[2];
             let comment = $('#txtComment').val();
             let due = $('#txtDueDate').val();
-            console.log("listid" + listid);
-            console.log("memeberid" + memberid);
-            MoveCard($('.btnDev').data('trellocardid'), listid, memberid, username, comment, due);
+            //console.log("listid" + listid);
+            //console.log("memeberid" + memberid);
+            MoveCard($('.btnDev').data('trellocardid'), listid, memberid, username, comment, due, null);
             $('.SendToDev').slideToggle();
             $("body").off("click", ".btnDev");
           });
@@ -166,11 +198,11 @@ function bindTests(testtobind) {
             $("body").off("click", ".btnCloseDev");
           });
         });
-      } else if (newstatus === 'Pending Approval' || newstatus === 'In QA') {
+      } else if (newstatus === 'Pending Approval' || newstatus === 'In QA' || newstatus === 'Ready for PM') {
 
         //Pull experiment id from trello card and save in airtable, then refresh tests
         GetExperimentId(trellocardid, function (expid) {
-          if (Number.isInteger(expid)) {
+          if (parseInt(expid, 10) > 0) {
             UpdateAtRecord('ExperimentId', expid, base, recid, function () {
               getBaseJson();
               return;
@@ -178,9 +210,38 @@ function bindTests(testtobind) {
           }
         });
 
+        if (newstatus === 'Pending Approval') {
+          // move card to signoff list on client board
+          if(tbArray[clientcode]){
+            ScanBoardForListId(tbArray[clientcode], 'Signoff', function(listid, boardid) {
+
+              MoveCard(trellocardid, listid, null, null, "Request for approval sent", null, boardid);
+
+            });
+          }
+        }
+
       } else if (newstatus === 'Completed' || newstatus === 'Blocked') {
+        
+        if(tbArray[clientcode]){
+          ScanBoardForListId(tbArray[clientcode], 'Done', function(listid, boardid) {
+
+            MoveCard(trellocardid, listid, null, null, "Test completed, done, or blocked", null, boardid);
+
+          });
+        }
+
         getBaseJson();
+        
         return;
+      } else if (newstatus === 'Softcoded') {
+        if(tbArray[clientcode]){
+          ScanBoardForListId(tbArray[clientcode], 'Hard', function(listid, boardid) {
+
+            MoveCard(trellocardid, listid, null, null, "Test set to 100%", null, boardid);
+
+          });
+        }
       }
     });
   });
@@ -208,7 +269,7 @@ function bindTests(testtobind) {
         //metric name
         rtext += "<li>" + json.metrics[c].name + "<br><ul>";
         let o = 0;
-        console.log(json.metrics[c]);
+        //console.log(json.metrics[c]);
         for (var prop in json.metrics[c].results) {
           if (json.metrics[c].results[prop].is_baseline === false) {
             var lift = Math.round((json.metrics[c].results[prop].lift.value * 100) * 10) / 10 + "%";
@@ -241,7 +302,7 @@ function bindTests(testtobind) {
     let launchtemp = "<p>[Approval to Launch]" + exname + "</p><p>Hi xxxx,</p><p>This test is now ready to launch.</p><p>If there is no feedback, just reply 'approved' and we will get this test launched.</p><p>Live Preview: (We recommend copy & pasting the links into an incognito )</p><p>{links}</p><p>Thanks,<br></p>";
     let linkblock = "";
     GetPreviewLinks(exid, token, function (x) {
-      console.log(x);
+      //console.log(x);
       x.forEach(function (link) {
         linkblock += "<a href='" + link.link + "' >" + link.name + "</a><br>";
       });
@@ -323,6 +384,31 @@ function setOptTokens() {
       }
     })
   }
+
+  for (let xn = 1; xn < 7; xn++) {
+    let xget = "at" + xn;
+    getSavedBase([xget], (tok) => {
+      if (tok[xget]) {
+        if (tok[xget].length > 4) {
+           let sa = tok[xget].split('|');
+           atArray[sa[0]] = sa[1];    
+        }
+      }
+    })
+  }
+  
+  for (let xn = 1; xn < 7; xn++) {
+    let xget = "tb" + xn;
+    getSavedBase([xget], (tok) => {
+      if (tok[xget]) {
+        if (tok[xget].length > 4) {
+           let sa = tok[xget].split('|');
+           tbArray[sa[0]] = sa[1];    
+        }
+      }
+    })
+  }
+
   getSavedBase('trellokey', (tok) => {
     trellokey = tok.trellokey;
   });
@@ -338,8 +424,13 @@ function populateSettings() {
   for (var xn = 1; xn < 7; xn++) {
     let xget = "base" + xn;
     let xopt = "opt" + xn;
+    let xtb = "tb" + xn;
+    let atb = "at" + xn;
     let txtPre = "txtPrefix" + xn;
     let txtTok = "txtOptToken" + xn;
+    let txtTB = "txtTrelloBoard" + xn;
+    let txtAT = "txtAirtableId" + xn;
+
     getSavedBase([xget], (saveurl) => {
       if (saveurl[xget] && saveurl[xget].length > 0) {
         document.getElementById(xget).value = saveurl[xget];
@@ -350,6 +441,18 @@ function populateSettings() {
       if (v[xopt] && v[xopt].length > 0) {
         $('#' + txtPre).val(v[xopt].substr(0, v[xopt].indexOf('|')));
         $('#' + txtTok).val(v[xopt].substr(v[xopt].indexOf('|') + 1, v[xopt].length));
+      }
+    });
+    getSavedBase([xtb], (v) => {
+      if (v[xtb] && v[xtb].length > 0) {
+        
+        $('#' + txtTB).val(v[xtb].substr(v[xtb].indexOf('|') + 1, v[xtb].length));
+      }
+    });
+    getSavedBase([atb], (v) => {
+      if (v[atb] && v[atb].length > 0) {
+        
+        $('#' + txtAT).val(v[atb].substr(v[atb].indexOf('|') + 1, v[atb].length));
       }
     });
 
@@ -426,6 +529,18 @@ document.addEventListener('DOMContentLoaded', () => {
     saveStore("opt6", $("#txtPrefix6").val() + "|" + $('#txtOptToken6').val());
     saveStore("trellokey", $("#txtTrelloKey").val());
     saveStore("trellotoken", $("#txtTrelloToken").val());
+    saveStore("tb1", $("#txtPrefix1").val() + "|" + $('#txtTrelloBoard1').val());
+    saveStore("tb2", $("#txtPrefix2").val() + "|" + $('#txtTrelloBoard2').val());
+    saveStore("tb3", $("#txtPrefix3").val() + "|" + $('#txtTrelloBoard3').val());
+    saveStore("tb4", $("#txtPrefix4").val() + "|" + $('#txtTrelloBoard4').val());
+    saveStore("tb5", $("#txtPrefix5").val() + "|" + $('#txtTrelloBoard5').val());
+    saveStore("tb6", $("#txtPrefix6").val() + "|" + $('#txtTrelloBoard6').val());
+    saveStore("at1", $("#txtPrefix1").val() + "|" + $('#txtAirtableId1').val());
+    saveStore("at2", $("#txtPrefix2").val() + "|" + $('#txtAirtableId2').val());
+    saveStore("at3", $("#txtPrefix3").val() + "|" + $('#txtAirtableId3').val());
+    saveStore("at4", $("#txtPrefix4").val() + "|" + $('#txtAirtableId4').val());
+    saveStore("at5", $("#txtPrefix5").val() + "|" + $('#txtAirtableId5').val());
+    saveStore("at6", $("#txtPrefix6").val() + "|" + $('#txtAirtableId6').val());
     setOptTokens();
     getBaseJson();
     $('.settings').slideToggle();
@@ -451,6 +566,8 @@ document.addEventListener('DOMContentLoaded', () => {
       UpdateAtRecord('Results', $('#txtresultlink').val(), $(this).data('base'), $(this).data('recid'));
     }
     $('.LiveUpdate').slideToggle();
+    $('#txtexid').val('');
+    $('#txtresultlink').val('');
   });
 
   $("#txtsearch").on('input', function () {
