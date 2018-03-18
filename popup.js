@@ -4,6 +4,15 @@ let urlArray = [];
 let atArray = [];
 let tbArray = [];
 
+function strip(html)
+{
+   var re = /<br>/gi;
+   html = html.replace(re,"\r\n"); 
+   var tmp = document.createElement("DIV");
+   tmp.innerHTML = html;
+   return tmp.textContent || tmp.innerText || "";
+}
+
 function getUrlVars(url) {
   var vars = [], hash;
   var hashes = url.slice(url.indexOf('?') + 1).split('&');
@@ -138,13 +147,18 @@ function bindTests(testtobind) {
     var cell = $(this).parent();
     var trellocardid = $(this).data('trelloid');
     var clientcode = row.data('clientcode');
-
+    var exid = $(this).parent().next().find('.btnGetResults').data('exid');
+    var token = $(this).parent().next().find('.btnGetResults').data('token');
 
     UpdateAtRecord('Status', newstatus, base, recid, function () {
       row.removeClass().addClass(newstatus.toLowerCase()).addClass('row');
       cell.removeClass().addClass(newstatus.toLowerCase()).addClass('cell').addClass('status');
 
       if (newstatus === "Live") {
+        
+        var d = new Date();
+        var n = d.toISOString();
+        UpdateAtRecord('Start Date', n, base, recid);
 
         $('.LiveUpdate').slideToggle();
         //console.log(base);
@@ -223,10 +237,24 @@ function bindTests(testtobind) {
 
       } else if (newstatus === 'Completed' || newstatus === 'Blocked') {
         
+        var d = new Date();
+        var n = d.toISOString();
+        UpdateAtRecord('End Date', n, base, recid);
+
         if(tbArray[clientcode]){
           ScanBoardForListId(tbArray[clientcode], 'Done', function(listid, boardid) {
 
-            MoveCard(trellocardid, listid, null, null, "Test completed, done, or blocked", null, boardid);
+            if (newstatus === 'Completed') {
+              GetAtRecord(base, recid,  function (rec) {
+                MoveCard(trellocardid, listid, null, null, "Test completed on " + n + " results: " + rec.fields.Results, null, boardid);
+              });              
+              
+              GetOptimizelyResults(exid, token, function (rtext) {   
+                UpdateAtRecord("Final Results", strip(rtext), base, recid);
+              });
+            }
+            else 
+             MoveCard(trellocardid, listid, null, null, "Test blocked on " + n, null, boardid);
 
           });
         }
@@ -236,10 +264,17 @@ function bindTests(testtobind) {
         return;
       } else if (newstatus === 'Softcoded') {
         if(tbArray[clientcode]){
+          
+          var d = new Date();
+          var n = d.toISOString();
+          UpdateAtRecord('End Date', n, base, recid);
+
+          GetOptimizelyResults(exid, token, function (rtext) {   
+            UpdateAtRecord("Final Results", strip(rtext), base, recid);
+          });
+          
           ScanBoardForListId(tbArray[clientcode], 'Hard', function(listid, boardid) {
-
             MoveCard(trellocardid, listid, null, null, "Test set to 100%", null, boardid);
-
           });
         }
       }
@@ -255,33 +290,7 @@ function bindTests(testtobind) {
     if (!$('.row' + exid).is(':visible'))
       return;
 
-    GetOptimizelyResults(exid, token, function (json) {
-
-      var rtext = "";
-      var start = "Started on: " + json.start_time + "<br>";
-
-      if (json.reach.total_count)
-        var total_visitors = "Total visitors:" + json.reach.total_count + "<br>";
-
-      rtext += start + total_visitors + "<ul>";
-      for (var c = 0; c < json.metrics.length; c++) {
-
-        //metric name
-        rtext += "<li>" + json.metrics[c].name + "<br><ul>";
-        let o = 0;
-        //console.log(json.metrics[c]);
-        for (var prop in json.metrics[c].results) {
-          if (json.metrics[c].results[prop].is_baseline === false) {
-            var lift = Math.round((json.metrics[c].results[prop].lift.value * 100) * 10) / 10 + "%";
-            var ss = Math.floor(json.metrics[c].results[prop].lift.significance * 100) + "%";
-            //variation results
-            rtext += "<li>" + json.metrics[c].results[prop].name + ": " + lift + " @" + ss + "</li>";
-          }
-          o++;
-        }
-        rtext += "</li></ul>";
-      }
-      rtext += "</ul>";
+    GetOptimizelyResults(exid, token, function (rtext) {      
       //console.log(rtext);
       $('#txt' + exid).html(rtext);
     });

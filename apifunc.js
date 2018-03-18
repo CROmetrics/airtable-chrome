@@ -14,7 +14,7 @@ function getBaseJson() {
 
         return request;
     });
-    
+
     //Fire off series of promises to get tests out of various airtable bases
     Promise.all(requestsArray.map((request) => {
         return fetch(request).then((response) => {
@@ -26,7 +26,7 @@ function getBaseJson() {
 
         });
     })).then((values) => {
-        
+
         //Merge all the testing into a single array
         values.map((item) => {
             for (let i = item.records.length - 1; i >= 0; i--) {
@@ -38,15 +38,15 @@ function getBaseJson() {
                     item.records[i].trelloid = item.records[i].fields["Trello Link"].substr(startpos, endpos - startpos);
                 }
                 records.push(item.records[i]);
-            }            
+            }
         });
         alltests = records;
-        
+
         //Pull out test that we want to scan for transition to QA or Done Ready
         cardstoscan = _.filter(alltests, function (c) {
             return c.fields.Status === "In QA" || c.fields.Status === "Implementation" || c.fields.Status === "Live";
         });
-        
+
         //Fire off more promises to scan each card to see what list it's on now
         Promise.all(cardstoscan.map((test) => {
             return ScanCard(test.trelloid).then((response) => {
@@ -60,46 +60,46 @@ function getBaseJson() {
                 //console.log(test.fields);  
                 //console.log(data);   
                 if (!data.status)
-                    data.status = test.fields.Status; 
+                    data.status = test.fields.Status;
                 //Check to see if card moved to a QA/Done if so update airtable
                 if (data.change !== "no change" && test.fields.Status !== data.status) {
                     //update airtable record                                                             
-                   UpdateAtRecord('Status', data.status, BaseId, RecId);  
-                   if (parseInt(data.exid, 10) > 0)
-                    UpdateAtRecord('ExperimentId', data.exid, BaseId, RecId);                
+                    UpdateAtRecord('Status', data.status, BaseId, RecId);
+                    if (parseInt(data.exid, 10) > 0)
+                        UpdateAtRecord('ExperimentId', data.exid, BaseId, RecId);
                 } else if (test.fields.ExperimentId !== data.exid) {
                     //This is for cards that are live but didnt have a experiment id, we use the id we scanned and update                   
                     if (parseInt(data.exid, 10) > 0)
-                    UpdateAtRecord('ExperimentId', data.exid, BaseId, RecId);   
-                } 
-                return data;                
+                        UpdateAtRecord('ExperimentId', data.exid, BaseId, RecId);
+                }
+                return data;
             })
         })).then((values) => {
             console.log('---');
             alltests.map(function (test) {
                 values.map(function (utest) {
-                    if (utest.change !== "no change") {                        
-                        if (test.id === utest.id) {                            
-                            if( test.fields.Status !== utest.status) {
+                    if (utest.change !== "no change") {
+                        if (test.id === utest.id) {
+                            if (test.fields.Status !== utest.status) {
                                 //update main array object status  
                                 //console.log(utest);                              
-                                test.fields.Status = utest.status;      
-                                test.fields.ExperimentId = utest.exid;                     
+                                test.fields.Status = utest.status;
+                                test.fields.ExperimentId = utest.exid;
                             } else if (test.fields.ExperimentId !== utest.exid) {
                                 if (parseInt(utest.exid, 10) > 0)
-                                    test.fields.ExperimentId = utest.exid;            
+                                    test.fields.ExperimentId = utest.exid;
                             }
-                            
+
                         }
                     }
                 });
 
             });
-                        
+
             bindTests(alltests);
         });
 
-        
+
     });
 
 
@@ -143,15 +143,15 @@ function ScanBoardForListId(boardid, namecontains, callback) {
     var xhr = new XMLHttpRequest();
     xhr.withCredentials = false;
     xhr.addEventListener("readystatechange", function () {
-        
+
         if (this.readyState === this.DONE) {
             let lists = JSON.parse(this.responseText);
-         
-           for(var b of lists) { 
-                if(b.name.includes(namecontains)){
+
+            for (var b of lists) {
+                if (b.name.includes(namecontains)) {
                     return callback(b.id, b.idBoard);
                 }
-           }
+            }
         }
     });
 
@@ -224,14 +224,14 @@ function AddMemberToCard(cardid, memberId) {
 }
 
 function MoveCard(cardid, listid, memberToAdd, username, comment, due, boardid, callback) {
-   // console.log(trellokey);
+    // console.log(trellokey);
     var duedate;
     if (due) {
         duedate = due;
     } else {
         var date = new Date();
         date.setDate(date.getDate() + 3);
-        if(date.getDay() === 1) {
+        if (date.getDay() === 1) {
             date.setDate(date.getDate() + 1);
         } else if (date.getDay() === 0) {
             date.setDate(date.getDate() + 2);
@@ -241,8 +241,8 @@ function MoveCard(cardid, listid, memberToAdd, username, comment, due, boardid, 
         var duedate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
     }
 
-    if (!boardid) 
-    boardid = '54f4ad49bb26fe25381f2048';
+    if (!boardid)
+        boardid = '54f4ad49bb26fe25381f2048';
 
     var data = JSON.stringify(false);
 
@@ -257,7 +257,7 @@ function MoveCard(cardid, listid, memberToAdd, username, comment, due, boardid, 
                 AddTrelloComment(username, cardid, comment);
             } else {
                 AddTrelloComment(username, cardid, comment);
-            }           
+            }
 
         }
     });
@@ -288,7 +288,7 @@ function AddTrelloComment(username, cardid, comment) {
     var data = null;
     var xhr = new XMLHttpRequest();
     if (comment.length < 1) {
-        comment =     "here's another one for the queue. Let me know if any questions. Thanks!";
+        comment = "here's another one for the queue. Let me know if any questions. Thanks!";
 
     }
     xhr.addEventListener("readystatechange", function () {
@@ -297,9 +297,9 @@ function AddTrelloComment(username, cardid, comment) {
         }
     });
 
-    if(username)
+    if (username)
         comment = encodeURIComponent("@" + username + " " + comment);
-    else 
+    else
         comment = encodeURIComponent(comment);
 
     xhr.open("POST", "https://api.trello.com/1/cards/" + cardid + "/actions/comments?text=" + comment + "&key=" + trellokey + "&token=" + trellotoken);
@@ -329,19 +329,19 @@ function ScanCard(cardid) {
         var xhr = new XMLHttpRequest();
         var test = {};
         xhr.addEventListener("readystatechange", function () {
-            
+
             if (this.status === 404) {
                 test.change = "no change";
                 //test.exid =  desc.substr(exposition, exlength);
                 return resolve(test);
-             } else if (this.readyState === this.DONE) {
+            } else if (this.readyState === this.DONE) {
                 let card = JSON.parse(this.responseText);
                 //console.log(card);
                 let desc = card.desc;
                 let exposition = desc.indexOf('/experiments/') + 13;
                 let endposition = desc.indexOf('\n', exposition);
                 let exlength = endposition - exposition;
-                //console.log('card:' + card);
+                //console.log(card);
                 if (card.idList === "595d2dba6c4bd076d7b6c7b8" || card.idList === "5806175db43e2efadf7c1935") {
                     test.status = "In QA";
                     test.exid = desc.substr(exposition, exlength);
@@ -355,7 +355,7 @@ function ScanCard(cardid) {
                 }
                 else {
                     test.change = "ex update";
-                    test.exid =  desc.substr(exposition, exlength);
+                    test.exid = desc.substr(exposition, exlength);
                     return resolve(test);
                 }
             }
@@ -379,7 +379,34 @@ function GetOptimizelyResults(exid, token, callback) {
 
     x.onload = function () {
         json = JSON.parse(x.responseText);
-        return callback(json);
+        var rtext = "";
+        var start = "Started on: " + json.start_time + "<br>";
+
+        if (json.reach.total_count)
+            var total_visitors = "Total visitors:" + json.reach.total_count + "<br>";
+
+        rtext += start + total_visitors + "<ul>";
+        for (var c = 0; c < json.metrics.length; c++) {
+
+            //metric name
+            rtext += "<li>" + json.metrics[c].name + "<br><ul>";
+            let o = 0;
+            //console.log(json.metrics[c]);
+            for (var prop in json.metrics[c].results) {
+                if (json.metrics[c].results[prop].is_baseline === false) {
+                    var lift = Math.round((json.metrics[c].results[prop].lift.value * 100) * 10) / 10;
+                    var ss = Math.floor(json.metrics[c].results[prop].lift.significance * 100);
+                    if (lift > 0) lift = "+" + lift;
+                    if (ss === 0) ss = "<1%"; else ss = ss + "%";
+                    //variation results
+                    rtext += "<li>" + json.metrics[c].results[prop].name + ": " + lift + "% @" + ss + " ss<br></li>";
+                }
+                o++;
+            }
+            rtext += "</li></ul>";
+        }
+        rtext += "</ul>";
+        return callback(rtext);
     };
     x.send();
 }
