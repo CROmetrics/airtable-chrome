@@ -103,7 +103,9 @@ function bindTests(testtobind) {
 
         if (GetAirtableUrl(o[i].fields.Experiment.substring(0, 3),  o[i].id)) {
           outhtml += "<div class='cell'><a target='_new' href='" + GetAirtableUrl(o[i].fields.Experiment.substring(0, 3),  o[i].id) + "' title='open airtable record' ><img style='width:20px' src='airtable.png' /></a></div>";
-        } 
+        } else {
+          outhtml += "<div class='cell'><a target='_new' href='" + GetAirtableUrl(o[i].fields.Experiment.substring(0, 3),  o[i].id) + "' title='open airtable record' ><img style='width:20px' src='airtable-off.png' /></a></div>";
+        }
 
         outhtml += "</div><div class='status cell " + o[i].fields.Status.toLowerCase() + "'>";
         outhtml += "<select data-trelloid='" + o[i].trelloid + "' data-baseid='" + o[i].baseid + "' class='statsel' id='" + o[i].id + "'><option " + ((o[i].fields.Status === 'On Deck') ? "selected" : "") + ">On Deck</option>";
@@ -118,10 +120,10 @@ function bindTests(testtobind) {
         outhtml += "<option>Softcoded</option></select>";
         outhtml += "</div>"
         if (o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment) && o[i].fields.Status === "Live")
-          outhtml += "<div class='cell'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' title='get results' class='btnGetResults' >" + o[i].fields.Experiment.substring(0, 63) + "</a></div>";
+          outhtml += "<div class='cell'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' title='get results' class='btnGetResults' >" + o[i].fields.Experiment.substring(0, 58) + "</a></div>";
         
         else
-          outhtml += "<div class='cell'>" + o[i].fields.Experiment.substring(0, 63) + "</div>";
+          outhtml += "<div class='cell'>" + o[i].fields.Experiment.substring(0, 58) + "</div>";
 
         if ((o[i].fields.Status === 'Ready for PM' || o[i].fields.Status === 'Pending Approval') && o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment)) {
           if (parseInt(o[i].fields.ExperimentId, 10) > 0) {

@@ -5,332 +5,477 @@
  value "popup.html".
  -->
 <html>
-  <head>
-    <title>Getting Started Extension's Popup</title>
-    <style type="text/css">
-      body {
-        padding: 0px;        
-        margin: 0;
-        min-width: 685px;
-        min-height: 400px;
-      }
-      header {
-        position: fixed;
-        top: 0;
-        width: 100%;
-        overflow: hidden;
-      }
-      .search {
-        padding: 10px 10px;
-        background-color: #eee;
-        box-shadow: #00000073 0px 0px 12px;
-      }
-      #txtsearch {
-        border-radius: 5px;
-        padding:2px;
-        float: right;
-      }
-      h1 {
-        font-size: 15px;
-        background-color: #3774BB;
-        color: #fff;
-        margin: 0;
-        padding: 10px;
 
-      }
+<head>
+  <title>Getting Started Extension's Popup</title>
+  <style type="text/css">
+    body {
+      padding: 0px;
+      margin: 0;
+      min-width: 685px;
+      min-height: 400px;
+    }
 
-      #container {             
-        padding: 43px 12px 77px;
-        color: #333;
-        font-size: 14px;
-      }
-      .row {
-        padding: 6px 0 6px;        
-        border-bottom: solid 1px #ccc;
-        
-      }
-      .cell{
-        display: inline-block;
-        margin-right: 10px;
-      }
-      .cell a {
-        color:#3774BB;
-        cursor: pointer;
-      }
-      .status {
-        font-weight: bold;        
-      }
-      .implementation select {
-        background-color: #FCECB5;
-      }
-      .spec select {
-        background-color: #ccc;
-      }
-      .live select {
-        background-color: #D1F9C3;
-      }
-      .deck select {
-        background-color: #FCE2D4;
-      }
-      .qa select {
-        background-color: #EDE0FE;
-      }
-      .baseurls {
-        padding: 0 10px;
+    header {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      overflow: hidden;
+    }
 
-      }
-      .baseurls input {
-        margin: 0 0 5px 0;
-        height: 15px;
-        padding: 3px;
-        width: 90%;
-      }
-    
-      .togbase,.togsettings {
-        font-weight: 15px;
-        font-weight: bold;
-            display: block;
-        color: #3774BB;
-        float: left;
-        margin: 0 10px;
-        overflow: hidden;
-      }
-      button {
-        background-color: #ff590a;
-        color: #fff;
-        padding: 10px 10px;
-        text-transform: uppercase;
-        border: none;
-        font-weight: bold;
-        margin-bottom: 10px;
-      }
-      select {
-        padding: 4px;
-        width: 130px;
-      }
-      #myids{
-        min-width: 600px;
-      }
-      .loader {
-        font-size: 16px;
-        color: #333;
-        font-weight: bold;
-        text-align: center;
-      }
-      .loaderimg{
-        display: block;
-        text-align: center;
-        margin: 0 auto;
-        width: 100px;
-        margin-top: 15px;
-      }
-      .toglive{
-         background-color: #bebebe;
-         border-radius: 6px;
-         padding: 0 5px;
-         margin-left: 10px;
-         text-decoration: none;
-         color: #333;
-         float: right;
-         font-size: 14px;
-      }
-      
-      .resultrow {
-        display: none;
-      }
-      .resultrow textarea {
-        margin: 0px;
-        width: 100%;
-        border: 1px solid #ccc;
-        padding: 4px 6px;
-        height: 120px;
-      }
-      .resultrow div { 
-          padding: 6px 10px;
-    font-size: 13px;
-    border: 2px #EEE inset;
-       }
-       .resultrow ul {
-         margin: 2px 0;
-       }
-      .LiveUpdate, .settings, .baseurls, .UpdateToR, .SendToDev {
-          position: fixed;
-          bottom: 0;
-          background-color: #567386;
-          width: 100%;
-          color: #fff;
-          padding: 0 20px 40px;
-          display: none;
-      }
-      .SendToDev div{
-        margin-bottom: 10px;
-      }
-      .SendToDev label {
-        display: block;
-      }
-      .SendToDev textarea {
-        height: 100px;
-        width: 300px;
-      }
-      .settings p {
-        max-width: 90%;
-      }
-      .LiveUpdate input, .settings input, .baseurls input, .UpdateToR input, SendToDev select {
-        margin: 4px 2px 4px 0;
-      }
-      .btnClose,.btnCloseTokens, .btnCloseBases, .btnCloseToR, .btnCloseDev {
-        background-color: #bebebe;
-         border-radius: 6px;
-         padding: 2px 5px;
-         margin-left: 10px;
-         text-decoration: none;
-         color: #333;         
-         font-size: 14px; 
-         text-transform: capitalize;
-         position: absolute;
-         top: 8px;
-         right: 50px;
-      }
-      .menu {
-        overflow: hidden;
-        clear: both;
-        margin-bottom: 2px;
-        position: fixed;
-        bottom: 0;
-        background-color: #fff;
-        width: 100%;
-        padding: 10px 0;
-        background-color: #eee;
-        box-shadow: #00000073 0px 0px 12px;
-      }
-      .srow { overflow: hidden; }
-      .scell { float: left; }
-      .scell input[type='text'] {
-        width: 150px;
-      }
-      .icos{
-        width: 90px;
-        display: inline-block;
-      }
-      #selDev {
-        width: 300px;
-        margin-bottom: 10px;
-      }
-      .emailicon {
-        float: right;
-      }
-      .emailicon a {
-        width:25px;
-        display: block;
-      }
-      .emailicon img {
-        display: block;
-        width: 100%;
-      }
-    </style>
-    <script src="lo.js"></script>
-    <script src="jquery.js"></script>
-    <script src="apifunc.js"></script>
-    <script src="popup.js"></script>
-  </head>
+    .search {
+      padding: 10px 10px;
+      background-color: #eee;
+      box-shadow: #00000073 0px 0px 12px;
+    }
 
-  <body>
-    <header>
-    <h1>Airtable Quickview <input type="text" id="txtsearch" placeholder="search tickets" /></h1>   
-    </header>
-    <div id="container">
-      <div id="myids" name="myids" >
-        <div class="loader">Airdrop incoming...Victory ahead!
-        <img  class="loaderimg" src="loader.gif" />
-        </div>
+    #txtsearch {
+      border-radius: 5px;
+      padding: 2px;
+      float: right;
+    }
+
+    h1 {
+      font-size: 15px;
+      background-color: #3774BB;
+      color: #fff;
+      margin: 0;
+      padding: 10px;
+
+    }
+
+    #container {
+      padding: 43px 12px 77px;
+      color: #333;
+      font-size: 14px;
+    }
+
+    .row {
+      padding: 6px 0 6px;
+      border-bottom: solid 1px #ccc;
+
+    }
+
+    .cell {
+      display: inline-block;
+      margin-right: 10px;
+    }
+
+    .cell a {
+      color: #3774BB;
+      cursor: pointer;
+    }
+
+    .status {
+      font-weight: bold;
+    }
+
+    .implementation select {
+      background-color: #FCECB5;
+    }
+
+    .spec select {
+      background-color: #ccc;
+    }
+
+    .live select {
+      background-color: #D1F9C3;
+    }
+
+    .deck select {
+      background-color: #FCE2D4;
+    }
+
+    .qa select {
+      background-color: #EDE0FE;
+    }
+
+    .baseurls {
+      padding: 0 10px;
+
+    }
+
+    .baseurls input {
+      margin: 0 0 5px 0;
+      height: 15px;
+      padding: 3px;
+      width: 90%;
+    }
+
+    .togbase,
+    .togsettings {
+      font-weight: 15px;
+      font-weight: bold;
+      display: block;
+      color: #3774BB;
+      float: left;
+      margin: 0 10px;
+      overflow: hidden;
+    }
+
+    button {
+      background-color: #ff590a;
+      color: #fff;
+      padding: 10px 10px;
+      text-transform: uppercase;
+      border: none;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    select {
+      padding: 4px;
+      width: 130px;
+    }
+
+    #myids {
+      min-width: 600px;
+    }
+
+    .loader {
+      font-size: 16px;
+      color: #333;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .loaderimg {
+      display: block;
+      text-align: center;
+      margin: 0 auto;
+      width: 100px;
+      margin-top: 15px;
+    }
+
+    .toglive {
+      background-color: #bebebe;
+      border-radius: 6px;
+      padding: 0 5px;
+      margin-left: 10px;
+      text-decoration: none;
+      color: #333;
+      float: right;
+      font-size: 14px;
+    }
+
+    .resultrow {
+      display: none;
+    }
+
+    .resultrow textarea {
+      margin: 0px;
+      width: 100%;
+      border: 1px solid #ccc;
+      padding: 4px 6px;
+      height: 120px;
+    }
+
+    .resultrow div {
+      padding: 6px 10px;
+      font-size: 13px;
+      border: 2px #EEE inset;
+    }
+
+    .resultrow ul {
+      margin: 2px 0;
+    }
+
+    .LiveUpdate,
+    .settings,
+    .baseurls,
+    .UpdateToR,
+    .SendToDev {
+      position: fixed;
+      bottom: 0;
+      background-color: #567386;
+      width: 100%;
+      color: #fff;
+      padding: 0 20px 40px;
+      display: none;
+    }
+
+    .SendToDev div {
+      margin-bottom: 10px;
+    }
+
+    .SendToDev label {
+      display: block;
+    }
+
+    .SendToDev textarea {
+      height: 100px;
+      width: 300px;
+    }
+
+    .settings p {
+      max-width: 90%;
+    }
+
+    .LiveUpdate input,
+    .settings input,
+    .baseurls input,
+    .UpdateToR input,
+    SendToDev select {
+      margin: 4px 2px 4px 0;
+    }
+
+    .btnClose,
+    .btnCloseTokens,
+    .btnCloseBases,
+    .btnCloseToR,
+    .btnCloseDev {
+      background-color: #bebebe;
+      border-radius: 6px;
+      padding: 2px 5px;
+      margin-left: 10px;
+      text-decoration: none;
+      color: #333;
+      font-size: 14px;
+      text-transform: capitalize;
+      position: absolute;
+      top: 8px;
+      right: 50px;
+    }
+
+    .menu {
+      overflow: hidden;
+      clear: both;
+      margin-bottom: 2px;
+      position: fixed;
+      bottom: 0;
+      background-color: #fff;
+      width: 100%;
+      padding: 10px 0;
+      background-color: #eee;
+      box-shadow: #00000073 0px 0px 12px;
+    }
+
+    .srow {
+      overflow: hidden;
+    }
+
+    .scell {
+      float: left;
+    }
+
+    .scell input[type='text'] {
+      width: 150px;
+    }
+
+    .icos {
+      width: 90px;
+      display: inline-block;
+    }
+
+    #selDev {
+      width: 300px;
+      margin-bottom: 10px;
+    }
+
+    .emailicon {
+      float: right;
+    }
+
+    .emailicon a {
+      width: 25px;
+      display: block;
+    }
+
+    .emailicon img {
+      display: block;
+      width: 100%;
+    }
+
+    .ready select {
+      background-color: #f4a442;
+    }
+  </style>
+  <script src="lo.js"></script>
+  <script src="jquery.js"></script>
+  <script src="apifunc.js"></script>
+  <script src="popup.js"></script>
+</head>
+
+<body>
+  <header>
+    <h1>Airtable Quickview
+      <input type="text" id="txtsearch" placeholder="search tickets" />
+    </h1>
+  </header>
+  <div id="container">
+    <div id="myids" name="myids">
+      <div class="loader">Airdrop incoming...Victory ahead!
+        <img class="loaderimg" src="loader.gif" />
       </div>
     </div>
-    <div class="menu">
-      <a href="#" class="togbase">Enter Bases</a>
-      <a href="#" class="togsettings">Settings</a>
+  </div>
+  <div class="menu">
+    <a href="#" class="togbase">Enter Bases</a>
+    <a href="#" class="togsettings">Settings</a>
+  </div>
+  <div class="baseurls">
+    <h2>Base Urls</h2>
+    <div class="base_inputs">
+      <input id="base1" />
+      <br>
+      <input id="base2" />
+      <br>
+      <input id="base3" />
+      <br>
+      <input id="base4" />
+      <br>
+      <input id="base5" />
+      <br>
+      <input id="base6" />
+      <br>
+      <button id="btnSaveBases">Save Bases</button>
+      <button class="btnCloseBases">&#8681; Cancel</button>
     </div>
-    <div class="baseurls">  
-    <h2>Base Urls</h2>    
-      <div class="base_inputs">
-        <input id="base1" /><br>
-        <input id="base2" /><br>
-        <input id="base3" /><br>
-        <input id="base4" /><br>
-        <input id="base5" /><br>
-        <input id="base6" /><br>
-        <button id="btnSaveBases">Save Bases</button>
-        <button class="btnCloseBases">&#8681; Cancel</button>   
+  </div>
+  <div class="LiveUpdate">
+    <h2>Would you like to update the Airtable record?</h2>
+    <div>
+      <input type="text" id="txtexid" placeholder="ExperimentId" />
+    </div>
+    <div>
+      <input type="text" id="txtresultlink" placeholder="Result Link" />
+    </div>
+    <div>
+      <button class="btnLiveUpdate">Update</button>
+    </div>
+    <button class="btnClose">&#8681; Cancel</button>
+  </div>
+  <div class="UpdateToR">
+    <h2>Update Field</h2>
+    <div>
+      <input type="text" id="txtField" placeholder="enter value" />
+    </div>
+    <div>
+      <button class="btnToR">Update</button>
+    </div>
+    <button class="btnCloseToR">&#8681; Cancel</button>
+  </div>
+  <div class="SendToDev">
+    <h2>Choose Developer</h2>
+    <div>
+      <select id="selDev"></select>
+    </div>
+    <div>
+      <label>Due Date (defaults to 3 business days):</label>
+      <input id="txtDueDate" type="text" placeholder="mm/dd/yyyy" />
+    </div>
+    <div>
+      <label>Comment:</label>
+      <textarea id="txtComment" placeholder="Leave blank for default message.  Comments will automatically be prefaced with @ tag for the selected developer."></textarea>
+    </div>
+    <div>
+      <button class="btnDev">Assign Card</button>
+    </div>
+    <button class="btnCloseDev">&#8681; Cancel</button>
+  </div>
+  <div class="settings">
+    <h2>Optimizely Tokens</h2>
+    <p>You need to create a Personal Token in each clients Optimizely Account. This can be done by logging into the clients
+      account then visiting this
+      <a href="https://app.optimizely.com/v2/profile/api" target="_new">page</a>. Create the Token, copy the key and enter it below.</p>
+    <div class="srow">
+      <div class="scell">
+        <input maxlength="3" type="text" id="txtPrefix1" placeholder="Client Prefix" maxlength="3">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtOptToken1" placeholder="Optimizely Token">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtTrelloBoard1" placeholder="Board Id">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtAirtableId1" placeholder="Airtable tbl Id">
       </div>
     </div>
-    <div class="LiveUpdate">
-      <h2>Would you like to update the Airtable record?</h2>
-      <div><input type="text" id="txtexid" placeholder="ExperimentId" /></div>
-      <div><input type="text" id="txtresultlink" placeholder="Result Link" /></div>
-      <div><button class="btnLiveUpdate">Update</button></div>
-      <button class="btnClose">&#8681; Cancel</button>
+    <div class="srow">
+      <div class="scell">
+        <input maxlength="3" type="text" id="txtPrefix2" placeholder="Client Prefix" maxlength="3">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtOptToken2" placeholder="Optimizely Token">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtTrelloBoard2" placeholder="Board Id">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtAirtableId2" placeholder="Airtable tbl Id">
+      </div>
     </div>
-    <div class="UpdateToR">
-      <h2>Update Field</h2>
-      <div><input type="text" id="txtField" placeholder="enter value" /></div>      
-      <div><button class="btnToR">Update</button></div>
-      <button class="btnCloseToR">&#8681; Cancel</button>
+    <div class="srow">
+      <div class="scell">
+        <input maxlength="3" type="text" id="txtPrefix3" placeholder="Client Prefix" maxlength="3">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtOptToken3" placeholder="Optimizely Token">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtTrelloBoard3" placeholder="Board Id">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtAirtableId3" placeholder="Airtable tbl Id">
+      </div>
     </div>
-    <div class="SendToDev">
-      <h2>Choose Developer</h2>
-      <div><select id="selDev" ></select></div>   
-      <div><label>Due Date (defaults to 3 business days):</label> <input id="txtDueDate" type="text" placeholder="mm/dd/yyyy" /></div>   
-      <div><label>Comment:</label> 
-        <textarea id="txtComment" placeholder="Leave blank for default message.  Comments will automatically be prefaced with @ tag for the selected developer."></textarea></div>
-      <div><button class="btnDev">Assign Card</button></div>
-      <button class="btnCloseDev">&#8681; Cancel</button>
+    <div class="srow">
+      <div class="scell">
+        <input maxlength="3" type="text" id="txtPrefix4" placeholder="Client Prefix" maxlength="3">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtOptToken4" placeholder="Optimizely Token">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtTrelloBoard4" placeholder="Board Id">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtAirtableId4" placeholder="Airtable tbl Id">
+      </div>
     </div>
-    <div class="settings">
-        <h2>Optimizely Tokens</h2>
-        <p>You need to create a Personal Token in each clients Optimizely Account.  This can be done by logging into the clients account then visiting this <a href="https://app.optimizely.com/v2/profile/api" target="_new">page</a>.  Create the Token, copy the key and enter it below.</p>
-        <div class="srow">
-          <div class="scell"><input maxlength="3" type="text" id="txtPrefix1" placeholder="Client Prefix"></div>        
-          <div class="scell"><input type="text" id="txtOptToken1" placeholder="Optimizely Token"></div>
-          <div class="scell"><input type="text" id="txtTrelloBoard1" placeholder="Board Id"></div>
-          <div class="scell"><input type="text" id="txtAirtableId1" placeholder="Airtable tbl Id"></div>
-        </div>
-        <div class="srow">
-          <div class="scell"><input maxlength="3" type="text" id="txtPrefix2" placeholder="Client Prefix"></div>        
-          <div class="scell"><input type="text" id="txtOptToken2" placeholder="Optimizely Token"></div>
-          <div class="scell"><input type="text" id="txtTrelloBoard2" placeholder="Board Id"></div>
-          <div class="scell"><input type="text" id="txtAirtableId2" placeholder="Airtable tbl Id"></div>
-        </div> 
-        <div class="srow">
-          <div class="scell"><input maxlength="3" type="text" id="txtPrefix3" placeholder="Client Prefix"></div>        
-          <div class="scell"><input type="text" id="txtOptToken3" placeholder="Optimizely Token"></div>
-          <div class="scell"><input type="text" id="txtTrelloBoard3" placeholder="Board Id"></div>
-          <div class="scell"><input type="text" id="txtAirtableId3" placeholder="Airtable tbl Id"></div>
-        </div> 
-        <div class="srow">
-          <div class="scell"><input maxlength="3" type="text" id="txtPrefix4" placeholder="Client Prefix"></div>        
-          <div class="scell"><input type="text" id="txtOptToken4" placeholder="Optimizely Token"></div>
-          <div class="scell"><input type="text" id="txtTrelloBoard4" placeholder="Board Id"></div>
-          <div class="scell"><input type="text" id="txtAirtableId4" placeholder="Airtable tbl Id"></div>
-        </div> 
-        <div class="srow">
-          <div class="scell"><input maxlength="3" type="text" id="txtPrefix5" placeholder="Client Prefix"></div>        
-          <div class="scell"><input type="text" id="txtOptToken5" placeholder="Optimizely Token"></div>
-          <div class="scell"><input type="text" id="txtTrelloBoard5" placeholder="Board Id"></div>
-          <div class="scell"><input type="text" id="txtAirtableId5" placeholder="Airtable tbl Id"></div>
-        </div> 
-        <div class="srow">
-          <div class="scell"><input maxlength="3" type="text" id="txtPrefix6" placeholder="Client Prefix"></div>        
-          <div class="scell"><input type="text" id="txtOptToken6" placeholder="Optimizely Token"></div>
-          <div class="scell"><input type="text" id="txtTrelloBoard6" placeholder="Board Id"></div>
-          <div class="scell"><input type="text" id="txtAirtableId6" placeholder="Airtable tbl Id"></div>
-        </div>         
-        <h2>Trello Key and Token</h2>
-        <p>These can be obtained here: <a href="https://trello.com/app-key" target="_new">https://trello.com/app-key</a>.</p>
-        <div class="srow">
-          <div class="scell"><input type="text" id="txtTrelloKey" placeholder="Trello Key"></div>        
-          <div class="scell"><input type="text" id="txtTrelloToken" placeholder="Trello Token"></div>
-        </div> 
-        <button id="btnSaveOptTokens">Save</button>
-        <button class="btnCloseTokens">&#8681; Cancel</button>      
+    <div class="srow">
+      <div class="scell">
+        <input maxlength="3" type="text" id="txtPrefix5" placeholder="Client Prefix" maxlength="3">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtOptToken5" placeholder="Optimizely Token">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtTrelloBoard5" placeholder="Board Id">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtAirtableId5" placeholder="Airtable tbl Id">
+      </div>
     </div>
-  </body>
+    <div class="srow">
+      <div class="scell">
+        <input maxlength="3" type="text" id="txtPrefix6" placeholder="Client Prefix">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtOptToken6" placeholder="Optimizely Token">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtTrelloBoard6" placeholder="Board Id">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtAirtableId6" placeholder="Airtable tbl Id">
+      </div>
+    </div>
+    <h2>Trello Key and Token</h2>
+    <p>These can be obtained here:
+      <a href="https://trello.com/app-key" target="_new">https://trello.com/app-key</a>.</p>
+    <div class="srow">
+      <div class="scell">
+        <input type="text" id="txtTrelloKey" placeholder="Trello Key">
+      </div>
+      <div class="scell">
+        <input type="text" id="txtTrelloToken" placeholder="Trello Token">
+      </div>
+    </div>
+    <button id="btnSaveOptTokens">Save</button>
+    <button class="btnCloseTokens">&#8681; Cancel</button>
+  </div>
+</body>
+
 </html>

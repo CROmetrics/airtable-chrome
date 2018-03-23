@@ -155,7 +155,7 @@ function ScanBoardForListId(boardid, namecontains, callback) {
         }
     });
 
-    xhr.open("GET", "https://api.trello.com/1/boards/" + boardid + "/lists?key=" + trellokey + "&token=" + trellotoken);
+    xhr.open("GET", "https://api.trello.com/1/boards/" + boardid + "/lists?key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.send(data);
 }
 
@@ -202,7 +202,7 @@ function GetImplementationLists(callback) {
         }
     });
 
-    xhr.open("GET", "https://api.trello.com/1/boards/chLoHyqs/lists?key=" + trellokey + "&token=" + trellotoken);
+    xhr.open("GET", "https://api.trello.com/1/boards/chLoHyqs/lists?key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.send(data);
 }
 
@@ -219,7 +219,7 @@ function AddMemberToCard(cardid, memberId) {
         }
     });
 
-    xhr.open("POST", "https://api.trello.com/1/cards/" + cardid + "/idMembers?value=" + memberId + "&key=" + trellokey + "&token=" + trellotoken);
+    xhr.open("POST", "https://api.trello.com/1/cards/" + cardid + "/idMembers?value=" + memberId + "&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.send(data);
 }
 
@@ -262,8 +262,8 @@ function MoveCard(cardid, listid, memberToAdd, username, comment, due, boardid, 
         }
     });
 
-    //console.log("https://api.trello.com/1/cards/" + cardid + "?idList=" + listid + "&idBoard=" + boardid + "&due=" + duedate + "&key=" + trellokey + "&token=" + trellotoken);
-    xhr.open("PUT", "https://api.trello.com/1/cards/" + cardid + "?idList=" + listid + "&idBoard=" + boardid + "&due=" + duedate + "&key=" + trellokey + "&token=" + trellotoken);
+    //console.log("https://api.trello.com/1/cards/" + cardid + "?idList=" + listid + "&idBoard=" + boardid + "&due=" + duedate + "&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
+    xhr.open("PUT", "https://api.trello.com/1/cards/" + cardid + "?idList=" + listid + "&idBoard=" + boardid + "&due=" + duedate + "&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.send(data);
 
 }
@@ -279,8 +279,8 @@ function GetTrelloMembers() {
             trellomembers = members;
         }
     });
-
-    xhr.open("GET", "https://api.trello.com/1/organizations/51ae3b0fe6c311dd13000de0/members?filter=all&fields=all&key=" + trellokey + "&token=" + trellotoken);
+    console.log("https://api.trello.com/1/organizations/51ae3b0fe6c311dd13000de0/members?filter=all&fields=all&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
+    xhr.open("GET", "https://api.trello.com/1/organizations/51ae3b0fe6c311dd13000de0/members?filter=all&fields=all&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.send(data);
 }
 
@@ -302,7 +302,7 @@ function AddTrelloComment(username, cardid, comment) {
     else
         comment = encodeURIComponent(comment);
 
-    xhr.open("POST", "https://api.trello.com/1/cards/" + cardid + "/actions/comments?text=" + comment + "&key=" + trellokey + "&token=" + trellotoken);
+    xhr.open("POST", "https://api.trello.com/1/cards/" + cardid + "/actions/comments?text=" + comment + "&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.send(data);
 }
 
@@ -319,18 +319,19 @@ function GetExperimentId(cardid, callback) {
         }
     });
 
-    xhr.open("GET", "https://api.trello.com/1/cards/" + cardid + "/desc?key=" + trellokey + "&token=" + trellotoken);
+    xhr.open("GET", "https://api.trello.com/1/cards/" + cardid + "/desc?key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.send(data);
 }
 
 function ScanCard(cardid) {
+    console.log('here');
     return new Promise(function (resolve, reject) {
         var data = null;
         var xhr = new XMLHttpRequest();
         var test = {};
         xhr.addEventListener("readystatechange", function () {
 
-            if (this.status === 404) {
+            if (this.status === 404 || this.status === 400) {
                 test.change = "no change";
                 //test.exid =  desc.substr(exposition, exlength);
                 return resolve(test);
@@ -364,7 +365,7 @@ function ScanCard(cardid) {
         xhr.onerror = function () {
             console.log('error');
         };
-        xhr.open("GET", "https://api.trello.com/1/cards/" + cardid + "?key=" + trellokey + "&token=" + trellotoken);
+        xhr.open("GET", "https://api.trello.com/1/cards/" + cardid + "?key=" + trellokey.trim() + "&token=" + trellotoken.trim());
         xhr.send(data);
     });
 
