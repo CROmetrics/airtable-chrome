@@ -1,5 +1,6 @@
 let trellomembers, trellokey, trellotoken;;
 
+
 //Airtable Calls
 function getBaseJson() {
     var records = [];
@@ -75,7 +76,7 @@ function getBaseJson() {
                 return data;
             })
         })).then((values) => {
-            console.log('---');
+            //console.log('---');
             alltests.map(function (test) {
                 values.map(function (utest) {
                     if (utest.change !== "no change") {
@@ -279,7 +280,7 @@ function GetTrelloMembers() {
             trellomembers = members;
         }
     });
-    console.log("https://api.trello.com/1/organizations/51ae3b0fe6c311dd13000de0/members?filter=all&fields=all&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
+    //console.log("https://api.trello.com/1/organizations/51ae3b0fe6c311dd13000de0/members?filter=all&fields=all&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.open("GET", "https://api.trello.com/1/organizations/51ae3b0fe6c311dd13000de0/members?filter=all&fields=all&key=" + trellokey.trim() + "&token=" + trellotoken.trim());
     xhr.send(data);
 }
@@ -312,7 +313,8 @@ function GetExperimentId(cardid, callback) {
     xhr.addEventListener("readystatechange", function () {
         if (this.readyState === this.DONE) {
             let desc = JSON.parse(this.responseText)._value;
-            let exposition = desc.indexOf('/experiments/') + 13;
+            let editsection =  desc.indexOf('### Edit:') + 9;            
+            let exposition = desc.indexOf('/experiments/', editsection) + 13;
             let endposition = desc.indexOf('\n', exposition);
             let exlength = endposition - exposition;
             return callback(desc.substr(exposition, exlength));
@@ -324,7 +326,7 @@ function GetExperimentId(cardid, callback) {
 }
 
 function ScanCard(cardid) {
-    console.log('here');
+    //console.log('here');
     return new Promise(function (resolve, reject) {
         var data = null;
         var xhr = new XMLHttpRequest();
@@ -339,7 +341,9 @@ function ScanCard(cardid) {
                 let card = JSON.parse(this.responseText);
                 //console.log(card);
                 let desc = card.desc;
-                let exposition = desc.indexOf('/experiments/') + 13;
+                let editsection =  desc.indexOf('### Edit:') + 9;
+            
+                let exposition = desc.indexOf('/experiments/', editsection) + 13;
                 let endposition = desc.indexOf('\n', exposition);
                 let exlength = endposition - exposition;
                 //console.log(card);
@@ -439,3 +443,4 @@ function GetPreviewLinks(exid, token, callback) {
     x.send();
 
 }
+

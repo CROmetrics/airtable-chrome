@@ -63,6 +63,11 @@ function GetAirtableUrl(clientcode, recid) {
 /// Bind Test To DOM
 function bindTests(testtobind) {
 
+  //var d = new Date();
+  //saveStore('alltest1', _.slice(testtobind,0,2));
+  //saveStore('alltest2', _.slice(testtobind,3,6));
+  //saveStore('lastpull', d);
+
   $("body").off("change", ".statsel");
   $("body").off("click", ".btnGetResults");
   $("body").off("click", ".btnCloseToR");
@@ -78,14 +83,14 @@ function bindTests(testtobind) {
 
     if (o[i].fields.Status) {
 
-      //console.log(o[i].fields);
-      if (o[i].fields.Status === "Live" ||
+      console.log(o[i].fields);
+      if ((o[i].fields.Status === "Live" ||
         o[i].fields.Status === "In QA" ||
         o[i].fields.Status === "Spec" ||
         o[i].fields.Status === "Implementation" ||
         o[i].fields.Status === "On Deck" ||
         o[i].fields.Status === "Pending Approval" ||
-        o[i].fields.Status === "Ready for PM"
+        o[i].fields.Status === "Ready for PM") &&  o[i].fields.Experiment
       ) {
         outhtml += "<div class='row " + o[i].fields.Status.toLowerCase() + "' data-clientcode='" + o[i].fields.Experiment.substring(0, 3) + "'>";
         outhtml += "<div class='icos'>";
@@ -104,7 +109,7 @@ function bindTests(testtobind) {
         if (GetAirtableUrl(o[i].fields.Experiment.substring(0, 3),  o[i].id)) {
           outhtml += "<div class='cell'><a target='_new' href='" + GetAirtableUrl(o[i].fields.Experiment.substring(0, 3),  o[i].id) + "' title='open airtable record' ><img style='width:20px' src='airtable.png' /></a></div>";
         } else {
-          outhtml += "<div class='cell'><a target='_new' href='" + GetAirtableUrl(o[i].fields.Experiment.substring(0, 3),  o[i].id) + "' title='open airtable record' ><img style='width:20px' src='airtable-off.png' /></a></div>";
+          outhtml += "<div class='cell'><img style='width:20px' src='airtable-off.png' /></div>";
         }
 
         outhtml += "</div><div class='status cell " + o[i].fields.Status.toLowerCase() + "'>";
