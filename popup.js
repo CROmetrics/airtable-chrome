@@ -63,11 +63,11 @@ function GetAirtableUrl(clientcode, recid) {
 /// Bind Test To DOM
 function bindTests(testtobind) {
 
-  //var d = new Date();
-  //saveStore('alltest1', _.slice(testtobind,0,2));
-  //saveStore('alltest2', _.slice(testtobind,3,6));
-  //saveStore('lastpull', d);
+var d = new Date();
+localStorage.setItem('alltest', JSON.stringify(testtobind));
+localStorage.setItem('lastopen', d);
 
+  console.log(testtobind);
   $("body").off("change", ".statsel");
   $("body").off("click", ".btnGetResults");
   $("body").off("click", ".btnCloseToR");
@@ -83,7 +83,7 @@ function bindTests(testtobind) {
 
     if (o[i].fields.Status) {
 
-      console.log(o[i].fields);
+      
       if ((o[i].fields.Status === "Live" ||
         o[i].fields.Status === "In QA" ||
         o[i].fields.Status === "Spec" ||
@@ -481,14 +481,22 @@ function populateSettings() {
     //console.log(v);
     $('#txtTrelloToken').val(v.trellotoken);
   });
-  setTimeout(function () {
-    if ($('#base1').val().length === 0) {
+  getSavedBase('base1', (v) => {
+    console.log(v);  
+    if(v){
+      var Five_Minutes = 5 * 60 * 1000;
+      var currentdatetime = new Date();
+      if((currentdatetime - new Date(localStorage.getItem('lastopen'))) < Five_Minutes){
+        console.log('less than 5 minutes')
+        alltests = JSON.parse(localStorage.getItem('alltest'));
+        bindTests(alltests);
+      } else getBaseJson();
+    }  else {
       $("myids").empty();
       document.getElementById("myids").innerHTML = "First enter your bases: <a href='https://crometrics.quip.com/nezDAyAVPf7b/Setup-Airtable-Quickview-Chrome-Extension' target='_new'>Instructions</a>";
-    } else {
-      getBaseJson();
     }
-  }, 1000);
+  });
+
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -573,6 +581,11 @@ document.addEventListener('DOMContentLoaded', () => {
     $('.settings').slideToggle();
   });
 
+  //refresh
+  $(".refresh").click("click", function () {
+    getBaseJson();
+  });
+
   //bind update button for update slide up    
   $(".btnLiveUpdate").click("click", function () {
     if ($('#txtexid').val().length > 0) {
@@ -590,6 +603,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filterTests($("#txtsearch").val());
   });
 
+  
 
 
 });

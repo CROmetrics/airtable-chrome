@@ -3,10 +3,12 @@ let trellomembers, trellokey, trellotoken;;
 
 //Airtable Calls
 function getBaseJson() {
+    console.log('getJsonBase');
+    alltests = '';
     var records = [];
-
+    
     let requestsArray = urlArray.map((url) => {
-        let request = new Request(url, {
+        let request = new Request(url + "&fields[0]=Experiment&fields[1]=Status&fields[2]=Trello%20Link&fields[4]=Results&fields[5]=ExperimentId&filterByFormula=AND(NOT({Status}%20=%20%27%27%20%20),%20NOT(%20{Status}%20=%20%27Completed%27,%20NOT(%20{Status}%20=%20%27Blocked%27),%20NOT(%20{Status}%20=%20%27Softcoded%27)))", {
             headers: new Headers({
                 'Content-Type': 'text/json'
             }),
@@ -18,18 +20,27 @@ function getBaseJson() {
 
     //Fire off series of promises to get tests out of various airtable bases
     Promise.all(requestsArray.map((request) => {
+        //console.log(request);
         return fetch(request).then((response) => {
-            return response.json();
+            //console.log(response);
+            if(response.status === 200)
+                return response.json();
+            else 
+            console.log('Double check your airtable fields');
+            
         }).then((data) => {
             //console.log(data);
-            data.baseid = request.url.substring(request.url.lastIndexOf("v0/") + 3, request.url.lastIndexOf("/"))
-            return data;
+            if (typeof data != 'undefined') {
+                data.baseid = request.url.substring(request.url.lastIndexOf("v0/") + 3, request.url.lastIndexOf("/"))
+                return data;
+            }
 
         });
     })).then((values) => {
-
+        
         //Merge all the testing into a single array
         values.map((item) => {
+            if (typeof item != 'undefined') {
             for (let i = item.records.length - 1; i >= 0; i--) {
                 item.records[i].baseid = item.baseid;
                 //Pull out trello card id
@@ -40,6 +51,7 @@ function getBaseJson() {
                 }
                 records.push(item.records[i]);
             }
+        }
         });
         alltests = records;
 
