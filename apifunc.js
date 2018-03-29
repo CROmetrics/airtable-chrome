@@ -456,3 +456,94 @@ function GetPreviewLinks(exid, token, callback) {
 
 }
 
+
+function LaunchTest(exid, token, callback) {
+
+    var resultlink = 'https://api.optimizely.com/v2/experiments/' + exid + '?action=start';
+    var x = new XMLHttpRequest();
+    x.open('PATCH', resultlink);
+    x.setRequestHeader("Authorization", "Bearer " + token);
+    //x.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    x.onload = function () {
+        console.log(x.responseText);
+        json = JSON.parse(x.responseText);
+        if (json.error) {
+            alert(json.error.type);
+        }
+        return callback();
+    };
+    x.send();
+}
+
+
+function GetPages(projid, token, callback){
+    var resultlink = 'https://api.optimizely.com/v2/pages?project_id=' + projid + '&per_page=100';
+    var x = new XMLHttpRequest();
+    x.open('GET', resultlink);
+    x.setRequestHeader("Authorization", "Bearer " + token);
+    //x.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    x.onload = function () {
+        //console.log(x.responseText);
+        json = JSON.parse(x.responseText);
+        if (json.error) {
+            alert(json.error.type);
+        }
+
+        return callback(json);
+    };
+    x.send();
+}
+
+function GetEvents(projid, token, callback){
+    var resultlink = 'https://api.optimizely.com/v2/events?project_id=' + projid + '&per_page=100';
+    var x = new XMLHttpRequest();
+    x.open('GET', resultlink);
+    x.setRequestHeader("Authorization", "Bearer " + token);
+    //x.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    x.onload = function () {
+        //console.log(x.responseText);
+        json = JSON.parse(x.responseText);
+        if (json.error) {
+            alert(json.error.type);
+        }
+
+        return callback(json);
+    };
+    x.send();
+}
+
+function GetExperiment(exid, token, callback){
+    var resultlink = 'https://api.optimizely.com/v2/experiments/' + exid;
+    var x = new XMLHttpRequest();
+    x.open('GET', resultlink);
+    x.setRequestHeader("Authorization", "Bearer " + token);
+    //x.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+    x.onload = function () {
+        //console.log(x.responseText);
+        let json = JSON.parse(x.responseText);
+        if (json.error) {
+            alert(json.error.type);
+        }
+        
+        let projid = json.project_id;
+        GetEvents(projid,token, function(events){
+            let myevents = [];            
+            json.metrics.forEach(metric => {
+                //console.log(metric.event_id);                
+                myevents.push(_.find(events,{'id':metric.event_id}));                
+            });
+            GetPages(projid, token, function(pages){
+                let mypages = [];
+                json.page_ids.forEach(page => {
+                    mypages.push(_.find(pages,{'id':page})); 
+                });
+                return callback(json, myevents, mypages);               
+            });
+
+        });
+
+        
+    };
+    x.send();
+}
+
