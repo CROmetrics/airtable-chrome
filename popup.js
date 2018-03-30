@@ -132,7 +132,7 @@ localStorage.setItem('lastopen', d);
 
         if ((o[i].fields.Status === 'Ready for PM' || o[i].fields.Status === 'Pending Approval') && o[i].fields.ExperimentId && getTokenFromExName(o[i].fields.Experiment)) {
           if (parseInt(o[i].fields.ExperimentId, 10) > 0) {
-            outhtml += "<div class='emailicon'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' data-name='" + o[i].fields.Experiment + "' class='btnLaunch' href='#'><img src='email.png' title='get approval to launch template'></a></div>";
+            outhtml += "<div class='emailicon'><a data-token='" + getTokenFromExName(o[i].fields.Experiment) + "' data-exid='" + o[i].fields.ExperimentId + "' data-name='" + o[i].fields.Experiment.replace(/'/g, "`") + "' class='btnLaunch' href='#'><img src='email.png' title='get approval to launch template'></a></div>";
           }
 
         }
@@ -285,6 +285,7 @@ localStorage.setItem('lastopen', d);
           });
         }
       }
+      getBaseJson();
     });
   });
 
@@ -315,7 +316,7 @@ localStorage.setItem('lastopen', d);
     if (!$('.row' + exid).is(':visible'))
       return;
 
-    let launchtemp = "<p>[Approval to Launch]" + exname + "</p><p>Hi xxxx,</p><p>This test is now ready to launch.</p><p>If there is no feedback, just reply 'approved' and we will get this test launched.</p><p>Live Preview: (We recommend copy & pasting the links into an incognito )</p><p>{links}</p><p>Thanks,<br></p>";
+     let launchtemp = "<p>[Approval to Launch]" + exname + "</p><p>Hi xxxx,</p><p>This test is now ready to launch.</p><p>If there is no feedback, just reply 'approved' and we will get this test launched.</p><p>Live Preview: (We recommend copy & pasting the links into an incognito )</p><p>{links}</p><p>Thanks,<br></p>";
     let linkblock = "";
     GetPreviewLinks(exid, token, function (x) {
       //console.log(x);
@@ -370,7 +371,7 @@ localStorage.setItem('lastopen', d);
 
 function filterTests(query) {
   if (query.length < 1) { bindTests(alltests); }
-
+  
   filteredtests = _.filter(alltests, function (item) {
     return item.fields.Experiment.toLowerCase().indexOf(query.toLowerCase()) > -1;
   });
@@ -600,7 +601,8 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $("#txtsearch").on('input', function () {
-    filterTests($("#txtsearch").val());
+    //filterTests($("#txtsearch").val());
+    getBaseJson($("#txtsearch").val());
   });
 
   

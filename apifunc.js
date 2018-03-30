@@ -2,7 +2,7 @@ let trellomembers, trellokey, trellotoken;;
 
 
 //Airtable Calls
-function getBaseJson() {
+function getBaseJson(query) {
     console.log('getJsonBase');
     alltests = '';
     var records = [];
@@ -109,7 +109,14 @@ function getBaseJson() {
 
             });
 
-            bindTests(alltests);
+            if(query && query.length>1){
+                filteredtests = _.filter(alltests, function (item) {
+                    return item.fields.Experiment.toLowerCase().indexOf(query.toLowerCase()) > -1;
+                });
+                bindTests(filteredtests);
+            } else {
+                bindTests(alltests);
+            }
         });
 
 
