@@ -247,7 +247,9 @@ function MoveCard(cardid, listid, memberToAdd, username, comment, due, boardid, 
     // console.log(trellokey);
     var duedate;
     if (due) {
-        duedate = due;
+        let mydate = new Date(due);
+        mydate.setHours(mydate.getHours() + 17);
+        duedate = mydate.toISOString();
     } else {
         var date = new Date();
         date.setDate(date.getDate() + 3);
@@ -258,7 +260,10 @@ function MoveCard(cardid, listid, memberToAdd, username, comment, due, boardid, 
         } else if (date.getDay() === 6) {
             date.setDate(date.getDate() + 3);
         }
-        var duedate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+        duedate = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+        duedate = new Date(duedate);
+        duedate.setHours(17);
+        duedate = duedate.toISOString();
     }
 
     if (!boardid)
