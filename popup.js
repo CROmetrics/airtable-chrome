@@ -285,7 +285,7 @@ localStorage.setItem('lastopen', d);
           });
         }
       }
-      getBaseJson();
+      //getBaseJson();
     });
   });
 
@@ -485,13 +485,14 @@ function populateSettings() {
   getSavedBase('base1', (v) => {
     console.log(v);  
     if(v){
-      var Five_Minutes = 5 * 60 * 1000;
-      var currentdatetime = new Date();
-      if((currentdatetime - new Date(localStorage.getItem('lastopen'))) < Five_Minutes){
+      //var Five_Minutes = 5 * 60 * 1000;
+      //var currentdatetime = new Date();
+      /*if((currentdatetime - new Date(localStorage.getItem('lastopen'))) < Five_Minutes){
         console.log('less than 5 minutes')
         alltests = JSON.parse(localStorage.getItem('alltest'));
         bindTests(alltests);
-      } else getBaseJson();
+      } else */
+      getBaseJson();
     }  else {
       $("myids").empty();
       document.getElementById("myids").innerHTML = "First enter your bases: <a href='https://crometrics.quip.com/nezDAyAVPf7b/Setup-Airtable-Quickview-Chrome-Extension' target='_new'>Instructions</a>";
